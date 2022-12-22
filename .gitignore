@@ -1,0 +1,5 @@
+#ignore below files
+*.exe
+#ignore folder
+.idea
+__pycache__
