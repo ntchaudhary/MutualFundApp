@@ -8,6 +8,7 @@ from mutualFundApp.src.utilities.utils import *
 from fastapi import APIRouter
 
 fundDetails = APIRouter()
+header = "localhost"
 
 
 @fundDetails.get('/fund-details')
@@ -15,8 +16,8 @@ def _handler() -> dict:
     """Return current value of all the invested funds along with gain and loss on per fund basis"""
     _MF = Mftool()
     _DB_OBJ = Connection()
-    mapping = list()
-    header = "localhost"
+    response = list()
+
     try:
         for schemeCode in SCHEME_CODE:
             strObj = f'''Select * from FUND_{schemeCode} WHERE TAX_HARVESTED = 'NO';'''
@@ -29,8 +30,9 @@ def _handler() -> dict:
 
             currentMarketPrice['invested'] = dataframe.AMOUNT_INVESTED.sum()
 
-            mapping.append(convertResponse(currentMarketPrice))
-        return formatResponse(200, header, mapping)
+            response.append(convertResponse(currentMarketPrice))
+        else:
+            statusCode = 200
     except Exception as e:
         statusCode = 500
         response = {
