@@ -1,5 +1,5 @@
 #ignore below files
 *.exe
 #ignore folder
-.idea
 __pycache__
+counter.db
