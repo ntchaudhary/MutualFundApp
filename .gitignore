@@ -2,4 +2,6 @@
 *.exe
 #ignore folder
 __pycache__
+fundList.json
 counter.db
+Data.json
