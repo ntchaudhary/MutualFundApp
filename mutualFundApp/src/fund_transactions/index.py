@@ -1,5 +1,4 @@
-from decimal import Decimal
-from typing import Dict, Optional
+from typing import Optional
 import pandas as pd
 from mftool import Mftool
 from database.dbSetupAndConnection import Connection
@@ -10,12 +9,13 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 
-purchasedFundUnits = APIRouter()
+fundTransactions = APIRouter()
 header = "localhost"
 
 
 class Body(BaseModel):
-    installment: float
+    installment: Optional[float]
+    units: Optional[float]
     date = {
         'day': SIP_DATE,
         'month': CURRENT_MONTH,
@@ -23,8 +23,8 @@ class Body(BaseModel):
     }
 
 
-@purchasedFundUnits.post('/purchased-fund-units/{schemeCode}')
-def _handler(schemeCode: str, body: Body) -> dict:
+@fundTransactions.post('/fund-transactions/{schemeCode}/buy')
+def _buy(schemeCode: str, body: Body) -> dict:
     """calculating the monthly NAV units purchased and then inserting it into DataBase with
     date of nav and amount invested
     """
