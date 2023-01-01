@@ -5,7 +5,6 @@ from mutualFundApp.src.utilities.utils import *
 from fastapi import APIRouter
 
 availableFundList = APIRouter()
-header = "localhost"
 
 
 @availableFundList.put('/available-fund-list')
@@ -20,13 +19,11 @@ def _handler() -> dict:
         fileObj.write(all_scheme_codes)
 
         fileObj.close()
-
-        statusCode = 200
         response = "LIST UPDATED SUCCESSFULLY"
     except Exception as e:
-        statusCode = 500
+        
         response = {
             "ERROR": e.args[0]
         }
 
-    return formatResponse(statusCode, header, response)
+    return (response)
