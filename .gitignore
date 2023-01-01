@@ -5,3 +5,4 @@ __pycache__
 fundList.json
 counter.db
 Data.json
+*.bat
