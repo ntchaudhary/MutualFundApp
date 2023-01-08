@@ -65,7 +65,7 @@
           <div>
             <h3 class="float-md-start mb-0">Investment Tracker</h3>
             <nav class="nav nav-masthead justify-content-center float-md-end">
-              <!-- <a class="nav-link active" aria-current="page" href="/website">Home</a> -->
+              <a class="nav-link active" aria-current="page" href="/website">Home</a>
               <!-- <a class="nav-link" href="#">Features</a> -->
               <a class="nav-link" href="#">Contact</a>
             </nav>
@@ -75,38 +75,48 @@
 
       <div class="col">
         <br>
-        <h1>Your Worth - <span class="my-0">{{worth}}</span></h1>
-        <p class="lead">The investment details for your self with best in class UI and quickly</p>
-        <br><br>
+        <h1>Let's Start</h1>
+        <!-- <br><br> -->
+        <!-- <div class="row">
+             <div class="col">
+              <h5>Invested</h5>
+            </div>
+            <div class="col">
+              <h5>Current</h5>
+            </div>
+            <div class="col">
+              <h5>Total Return</h5>
+            </div>
+            <div class="col">
+              <h5>Total Harvesting Amt</h5>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <h2>{{invested}}</h2>
+            </div>
+            <div class="col">
+              <h2>{{current}}</h2>
+            </div>
+            <div class="col"> 
+              <h2>{{totalReturn}}</h2>
+            </div>
+            <div class="col">
+              <h2>{{totalharvest}}</h2>
+            </div>
+          </div> -->
+        <!-- <br><br> -->
       </div>
 
-      <div class="col text-white">
-        <div class="row row-cols-3">
-
+      <div class="col text-black">
+        <br><br>
+        <div class="row row-cols-2">
           <div class="col">
-            <h2>Instrument</h2>
+            <a href="#" class="btn btn-success btn-lg fw-bold">Add new Fund or Transaction</a>
           </div>
           <div class="col">
-            <h2>Current Value</h2>
+            <a href="/website/fund-details" class="btn btn-success btn-lg fw-bold">Fund & Harvesting Details</a>
           </div>
-          <div class="col">
-            <p></p>
-          </div>
-          <br>
-
-          {% for x in listOfInstruments%}
-            <br><br>
-            <div class="col">
-              <h4><a class="text-white text-decoration-none"
-                href="{{x.details_url}}">{{x.type}}</a></h4>
-            </div>
-            <div class="col">
-              <h4>{{x.amount}}</h4>
-            </div>
-            <div class="col">
-              <a href="{{x.add_new_url}}" class="btn btn-sm fw-bold  bg-white">Add New</a>
-            </div>
-          {% endfor %}
         </div>
       </div>
 

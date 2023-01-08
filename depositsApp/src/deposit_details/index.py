@@ -57,7 +57,7 @@ def _handler() -> dict:
                 if depositType=='RD':
 
                     show_time = time = (maturity-start).in_months()
-                    c_time = (pendulum.today().date()-start).in_months()
+                    show_c_time = c_time = (pendulum.today().date()-start).in_months() + 1 # this +1 is because we have already paid the first installment before the fist month completed
 
                     rd_amount=0
                     rd_current_interest = 0
@@ -74,7 +74,7 @@ def _handler() -> dict:
                         "id" : id,
                         "name":name,
                         "type": "Recurring Deposit",
-                        "principle":principle*show_time,
+                        "principle":principle*show_c_time,
                         "rate":rate,
                         "duration":f"{show_time} months",
                         "start_date": start,

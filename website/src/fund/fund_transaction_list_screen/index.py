@@ -3,10 +3,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import requests
 
-from website.src.utilities.utils import calculateSumFromListOFDict
-
 fundTransactionList = APIRouter()
-templates = Jinja2Templates(directory="website\\UI")
+templates = Jinja2Templates(directory="website\\UI\\fund_UI")
 
 
 @fundTransactionList.get('/fund-transactions-list/{schemeCode}', response_class=HTMLResponse)
@@ -18,7 +16,7 @@ def index(request: Request):
     response = requests.get(api_url)
 
     return templates.TemplateResponse(
-        "mf_details.html", 
+        "mf_transaction_details.html", 
         {
             "request": request, 
             "body":response.json()
