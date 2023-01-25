@@ -18,6 +18,10 @@ def _handler() -> dict:
     _DB_OBJ = Connection()
     response = list()
 
+    with open('mutualFundApp\src\static\Data.json', 'rb') as dataFile:
+        CONSTANTS = json.load(dataFile)
+    SCHEME_CODE = list(CONSTANTS.keys())
+
     try:
         for schemeCode in SCHEME_CODE:
             strObj = f'''Select * from FUND_{schemeCode} WHERE TAX_HARVESTED = 'NO';'''

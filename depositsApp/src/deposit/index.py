@@ -6,7 +6,7 @@ from depositsApp.src.utilities.utils import *
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-deposite = APIRouter()
+deposit = APIRouter()
 
 class Body(BaseModel):
     name: str
@@ -25,7 +25,7 @@ class Body(BaseModel):
         'year': CURRENT_YEAR
     }
 
-@deposite.post('/add')
+@deposit.post('/add')
 def _add(body: Body):
     """ Add the new FD or RD entry into database"""
     _DB = Connection()
@@ -42,17 +42,18 @@ def _add(body: Body):
         cur.execute(sqlstmt)
         _DB.conn.commit()
         response = {
+            "status" : 200,
             "message": "DEPOSIT ADDED SUCCESSFULLY"
         }
     except Exception as e:
         response = {
-            "ERROR": "500",
+            "status": 500,
             "message": str(e)
         }
     return response
 
 
-@deposite.delete('/delete/{fdID}')
+@deposit.delete('/delete/{fdID}')
 def _delete(fdID: str):
     """Delete FD or RD entry from database"""
     _DB = Connection()
@@ -72,19 +73,19 @@ def _delete(fdID: str):
             raise ValueError(f'FD with ID as {fdID} does not exists')
 
         response = {
+            "status" : 200,
             "message": "DEPOSIT DELETED SUCCESSFULLY"
         }
     except ValueError as e:
         response = {
-            "ERROR": "404",
+            "status": 404,
             "message": str(e)
         }
     except Exception as e:
         response = {
-            "ERROR": "500",
+            "status": 500,
             "message": str(e)
         }
-
 
     return(response)
         

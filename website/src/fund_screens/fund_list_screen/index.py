@@ -6,10 +6,10 @@ import requests
 from website.src.utilities.utils import calculateSumFromListOFDict
 
 fundDetails = APIRouter()
-templates = Jinja2Templates(directory="website\\UI")
+templates = Jinja2Templates(directory="website\\UI\\fund_UI")
 
 
-@fundDetails.get('/fund-details', response_class=HTMLResponse)
+@fundDetails.get('/fund-list', response_class=HTMLResponse)
 def index(request: Request):
 
     response = requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")

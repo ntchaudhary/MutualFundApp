@@ -31,6 +31,10 @@ def _buy(schemeCode: str, body: Body):
     _MF = Mftool()
     _DB_OBJ = Connection()
 
+    with open('mutualFundApp\src\static\Data.json', 'rb') as dataFile:
+        CONSTANTS = json.load(dataFile)
+    SCHEME_CODE = list(CONSTANTS.keys())
+
 
     date = pendulum.date(
             year=body.date['year'], month=body.date['month'], day=body.date['day'])
@@ -61,11 +65,15 @@ def _buy(schemeCode: str, body: Body):
             code=schemeCode,
             file=(date.strftime('%d-%m-%Y'), round(units, 3), body.installment)
         )
-        response = "UNITS UPDATED SUCCESSFULLY"
+        response = {
+            "status" : 200,
+            "message": "UNITS UPDATED SUCCESSFULLY"
+        }
         
     except Exception as e:
         response = {
-            "ERROR": e.args
+            "status" : 500,
+            "message": e.args
         }
 
     return (response)
@@ -75,6 +83,10 @@ def _sell(schemeCode: str, body: Body):
     """Sell the Mutual Funds Units based on either on number of units or based on date purchased"""
 
     _DB_OBJ = Connection()
+    
+    with open('mutualFundApp\src\static\Data.json', 'rb') as dataFile:
+        CONSTANTS = json.load(dataFile)
+    SCHEME_CODE = list(CONSTANTS.keys())
 
     date = pendulum.date(year=body.date['year'], month=body.date['month'], day=body.date['day'])
     
@@ -82,8 +94,8 @@ def _sell(schemeCode: str, body: Body):
         if schemeCode not in SCHEME_CODE:
             raise ValueError("SCHEME_CODE_INVALID")
         
-        if units != 0:
-            print('units ', units)
+        if body.units != 0:
+            units = body.units
             strObj = f'''Select * from FUND_{schemeCode} WHERE TAX_HARVESTED = 'NO';'''
             original_data = pd.read_sql_query(strObj, _DB_OBJ.conn)
 
@@ -115,13 +127,22 @@ def _sell(schemeCode: str, body: Body):
                     break
 
         else:
-            dateStr = f"{date['day']}-{date['month']}-{date['year']}"
+            print('in elseeeeeeeeee')
+            if body.date['month'] in [11,12]:
+                dateStr = f"{body.date['day']}-{body.date['month']}-{body.date['year']}"
+            else:
+                dateStr = f"{body.date['day']}-0{body.date['month']}-{body.date['year']}"
+            print(schemeCode,dateStr)
             _DB_OBJ.updateRows(code=schemeCode, date=dateStr)
         
-        response = "UNITS UPDATED SUCCESSFULLY"
+        response = {
+            "status" : 200,
+            "message": "UNITS UPDATED SUCCESSFULLY"
+        }
         
     except Exception as e:
         response = {
+            "status" : 500,
             "ERROR": e.args
         }
 

@@ -13,33 +13,37 @@ templates = Jinja2Templates(directory="website\\UI")
 def index(request: Request):
 
     listOfInstruments = ['Mutual Funds', 'Deposits']
+    deposit = 0
 
     response_fund = requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
 
     response_deposit = requests.get("http://127.0.0.1:8000/deposit/details")
 
     sumOfFund = calculateSumFromListOFDict(response_fund.json())
-    sumOfDeposit = calculateSumFromListOFDict(response_deposit.json())
+
+    if str(response_deposit.json().get('status')) == '200':
+        sumOfDeposit = calculateSumFromListOFDict(response_deposit.json().get('body'))
+        deposit = int( (sumOfDeposit("principle") + sumOfDeposit("interest_earned")) )
 
     fund = int(sumOfFund("balance_units_value"))
-    deposit = int( (sumOfDeposit("principle") + sumOfDeposit("interest_earned")) )
+    
     worth = fund+deposit
     body = list()
 
     for x in listOfInstruments:
         if x.lower() == 'mutual funds':
             tmp_dct = {
-            "amount": f"₹ {fund:,d}",
+            "amount": fund,
             "type": x,
-            "add_new_url" : "/website/fund",
-            "details_url" : "/website/fund-details"
+            "add_new_url" : "/website/add-fund",
+            "details_url" : "/website/fund-list"
         }
         if x.lower() == 'deposits':
             tmp_dct = {
-            "amount": f"₹ {deposit: ,d}",
+            "amount": deposit,
             "type": x,
-            "add_new_url" : "",
-            "details_url" : ""
+            "add_new_url" : "/website/add-deposit",
+            "details_url" : "/website/deposit-list"
         }
         if x.lower() == '':
             pass
@@ -54,7 +58,7 @@ def index(request: Request):
         "home.html", 
         {
             "request": request,
-            "worth":f"₹ {worth:,d}",
+            "worth":worth,
             "listOfInstruments" : body
         }
     )

@@ -14,19 +14,10 @@
     integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 
 
-
-  <!-- Bootstrap core CSS -->
-  <link href="/docs/5.1/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-
-  <!-- Favicons -->
-  <link rel="apple-touch-icon" href="/docs/5.1/assets/img/favicons/apple-touch-icon.png" sizes="180x180">
-  <link rel="icon" href="/docs/5.1/assets/img/favicons/favicon-32x32.png" sizes="32x32" type="image/png">
-  <link rel="icon" href="/docs/5.1/assets/img/favicons/favicon-16x16.png" sizes="16x16" type="image/png">
-  <link rel="manifest" href="/docs/5.1/assets/img/favicons/manifest.json">
-  <link rel="mask-icon" href="/docs/5.1/assets/img/favicons/safari-pinned-tab.svg" color="#7952b3">
-  <link rel="icon" href="/docs/5.1/assets/img/favicons/favicon.ico">
-  <meta name="theme-color" content="#blue">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 
 
   <style>
@@ -50,6 +41,18 @@
       }
     }
   </style>
+
+  <script type="text/javascript">
+    function separateNumber(givenNumber, tag_id) 
+    {
+
+        nfObject = new Intl.NumberFormat('en-IN');
+        output = nfObject.format(givenNumber);
+
+        document.getElementById(tag_id).innerHTML = "₹ "+output;
+    }
+  </script>
+
   <!-- Custom styles for this template -->
   <link href="cover.css" rel="stylesheet">
 </head>
@@ -75,9 +78,12 @@
 
       <div class="col">
         <br>
-        <h1>Your Worth - <span class="my-0">{{worth}}</span></h1>
+        <h1>Your Worth - <span class="my-0" id = "worth">{{worth}}</span></h1>
         <p class="lead">The investment details for your self with best in class UI and quickly</p>
         <br><br>
+        <script>
+          separateNumber('{{worth}}', 'worth')
+        </script>
       </div>
 
       <div class="col text-white">
@@ -101,11 +107,14 @@
                 href="{{x.details_url}}">{{x.type}}</a></h4>
             </div>
             <div class="col">
-              <h4>{{x.amount}}</h4>
+              <h4 id = "{{x.type}}">{{x.amount}}</h4>
             </div>
             <div class="col">
               <a href="{{x.add_new_url}}" class="btn btn-sm fw-bold  bg-white">Add New</a>
             </div>
+            <script>
+              separateNumber('{{x.amount}}', '{{x.type}}')
+            </script>
           {% endfor %}
         </div>
       </div>

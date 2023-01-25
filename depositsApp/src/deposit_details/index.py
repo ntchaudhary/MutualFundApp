@@ -14,6 +14,7 @@ def _handler() -> dict:
     
     _DB = Connection()
     response = list()
+    status_code = 404
     existsCheck = f''' select ID, NAME, TYPE, PRINCIPLE, RATE, FREQ, START_DATE, MATURITY_DATE from DEPOSIT '''
     
 
@@ -42,7 +43,7 @@ def _handler() -> dict:
 
                     dct_resp = {
                         "id" : id,
-                        "name":name,
+                        "name":name.title(),
                         "type": "Fixed Deposit",
                         "principle":principle,
                         "rate":rate,
@@ -51,6 +52,7 @@ def _handler() -> dict:
                         "maturity_date":maturity,
                         "maturity_amount": round(amount,0),
                         "interest_earned": round(c_interest,2),
+                        "isMatured": "Yes" if (pendulum.today().date() >= maturity) else "No"
                     }   
                     response.append(dct_resp)
 
@@ -74,6 +76,7 @@ def _handler() -> dict:
                         "id" : id,
                         "name":name,
                         "type": "Recurring Deposit",
+                        "installment": principle,
                         "principle":principle*show_c_time,
                         "rate":rate,
                         "duration":f"{show_time} months",
@@ -81,21 +84,24 @@ def _handler() -> dict:
                         "maturity_date":maturity,
                         "maturity_amount": round(rd_amount , 0),
                         "interest_earned": round(rd_current_interest, 2),
+                        "isMatured": "Yes" if (pendulum.today().date() >= maturity) else "No"
                     }   
                     response.append(dct_resp)
+            else:
+                status_code = 200
         else:
             raise ValueError(f'No Deposite is present in system')
 
     except ValueError as e:
+        status_code = 404
         response = {
-            "ERROR": "404",
             "message": str(e)
         }
     except Exception as e:
+        status_code = 500
         response = {
-            "ERROR": "500",
             "message": str(e)
         }
 
 
-    return(response)
+    return({"status" : status_code, "body": response })
