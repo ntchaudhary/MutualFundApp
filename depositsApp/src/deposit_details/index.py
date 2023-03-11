@@ -41,6 +41,8 @@ def _handler() -> dict:
                     amount = principle*( ( 1 + ( (rate/freq)/100) )**( freq*time ) )
                     c_interest = principle*( ( 1 + ( (rate/freq)/100) )**( freq*c_time ) ) - principle
 
+                    isMatured = "Yes" if (pendulum.today().date() >= maturity) else "No"
+
                     dct_resp = {
                         "id" : id,
                         "name":name.title(),
@@ -51,8 +53,8 @@ def _handler() -> dict:
                         "start_date": start,
                         "maturity_date":maturity,
                         "maturity_amount": round(amount,0),
-                        "interest_earned": round(c_interest,2),
-                        "isMatured": "Yes" if (pendulum.today().date() >= maturity) else "No"
+                        "interest_earned": ( round(amount,0) - principle ) if (isMatured == "Yes") else round(c_interest,2),
+                        "isMatured": isMatured
                     }   
                     response.append(dct_resp)
 
@@ -72,6 +74,8 @@ def _handler() -> dict:
                         rd_current_interest += principle*( ( 1 + ( (rate/freq)/100) )**( freq*c_time/12 ) ) - principle
                         c_time -=1
 
+                    isMatured = "Yes" if (pendulum.today().date() >= maturity) else "No"
+
                     dct_resp = {
                         "id" : id,
                         "name":name,
@@ -83,8 +87,8 @@ def _handler() -> dict:
                         "start_date": start,
                         "maturity_date":maturity,
                         "maturity_amount": round(rd_amount , 0),
-                        "interest_earned": round(rd_current_interest, 2),
-                        "isMatured": "Yes" if (pendulum.today().date() >= maturity) else "No"
+                        "interest_earned": (round(rd_amount , 0) - (principle*show_c_time) ) if (isMatured == "Yes") else round(rd_current_interest, 2),
+                        "isMatured": isMatured
                     }   
                     response.append(dct_resp)
             else:
