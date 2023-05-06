@@ -32,7 +32,7 @@ def _handler() -> dict:
 
             currentMarketPrice['invested'] = dataframe.AMOUNT_INVESTED.sum()
 
-            dataframe['UNITS_DATE'] = pd.to_datetime( dataframe['UNITS_DATE'], infer_datetime_format=True )
+            dataframe['UNITS_DATE'] = pd.to_datetime( dataframe['UNITS_DATE'], infer_datetime_format=True, dayfirst=True )
             data1 = dataframe.copy(deep=True)
             data1 = data1.set_index('UNITS_DATE')
             # data1 = data.sort_index(ascending=False, inplace=False).tail(1).index.values[0] + np.timedelta64(370, 'D')

@@ -48,7 +48,7 @@ def _buy(schemeCode: str, body: Body):
 
         original_data = _MF.get_scheme_historical_nav( schemeCode, as_Dataframe=True )
 
-        original_data.index = pd.to_datetime(original_data.index, infer_datetime_format=True)
+        original_data.index = pd.to_datetime(original_data.index, infer_datetime_format=True, dayfirst=True)
         original_data['nav'] = pd.to_numeric(original_data['nav'], downcast='float')
 
         while True:
@@ -99,7 +99,7 @@ def _sell(schemeCode: str, body: Body):
             strObj = f'''Select * from FUND_{schemeCode} WHERE TAX_HARVESTED = 'NO';'''
             original_data = pd.read_sql_query(strObj, _DB_OBJ.conn)
 
-            original_data['UNITS_DATE'] = pd.to_datetime(original_data['UNITS_DATE'], infer_datetime_format=True)
+            original_data['UNITS_DATE'] = pd.to_datetime(original_data['UNITS_DATE'], infer_datetime_format=True, dayfirst=True)
             data1 = original_data.copy(deep=True)
             data1 = data1.set_index('UNITS_DATE')
             data1 = data1.sort_index(inplace=False)
