@@ -1,10 +1,14 @@
 
 from database.dbSetupAndConnection import Connection
-from depositsApp.src.static.constants import *
-from depositsApp.src.utilities.utils import *
 
 from fastapi import APIRouter
 from pydantic import BaseModel
+
+import pendulum
+
+CURRENT_YEAR = pendulum.today().year
+CURRENT_MONTH = pendulum.today().month
+CURRENT_DATE = pendulum.today().day
 
 deposit = APIRouter()
 
