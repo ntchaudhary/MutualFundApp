@@ -39,12 +39,14 @@ def _handler() -> dict:
             data1 = data1.sort_index(inplace=False)
             endDate = pendulum.today('local').subtract(years=1).date()
             data1 = data1.loc[:endDate]
-
+            
             currentMarketPrice['harvest'] = calculateGainLossOnUnits(
                                                 schemeCode=schemeCode,
                                                 units=data1.NUMBER_OF_UNITS.sum(),
                                                 investedAmount=data1.AMOUNT_INVESTED.sum()
                                             )
+                                            
+            currentMarketPrice['harvest_unit'] = round( data1.NUMBER_OF_UNITS.sum(), 2 ) if currentMarketPrice['harvest'] > 0 else 0
 
             response.append(convertResponse(currentMarketPrice))
     except Exception as e:
