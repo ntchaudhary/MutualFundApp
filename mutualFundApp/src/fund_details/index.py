@@ -1,9 +1,9 @@
 from decimal import Decimal
 import pandas as pd
+import json, pendulum
 from mftool import Mftool
 from database.dbSetupAndConnection import Connection
-from mutualFundApp.src.static.constants import *
-from mutualFundApp.src.utilities.utils import *
+from utilities.utils import convertResponse
 
 from fastapi import APIRouter
 
@@ -18,7 +18,7 @@ def _handler() -> dict:
     _DB_OBJ = Connection()
     response = list()
 
-    with open('mutualFundApp\src\static\Data.json', 'rb') as dataFile:
+    with open('static/mutualFundApp/Data.json', 'rb') as dataFile:
         CONSTANTS = json.load(dataFile)
     SCHEME_CODE = list(CONSTANTS.keys())
 

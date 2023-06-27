@@ -31,96 +31,103 @@
   <link href="cover.css" rel="stylesheet">
 </head>
 
-<body class="d-flex  text-white bg-success ">
-    
-    <div class="cover-container d-flex w-100 h-100 mx-auto flex-column">
-        
-      <div class="row row-cols-1">
-  
-        <div class="col bg-black">
-          <nav class="navbar navbar-default">
-            <div>
-              <h3 class="float-md-start mb-0">Investment Tracker</h3>
-              <nav class="nav nav-masthead justify-content-center float-md-end">
-                <a class="nav-link active" aria-current="page" href="/website/home">Home</a>
-                <!-- <a class="nav-link" href="#">Features</a> -->
-                <a class="nav-link" href="#">Contact</a>
-              </nav>
+<body class="d-flex text-white bg-success">
+  <div class="cover-container d-flex w-100 h-100 mx-auto flex-column">
+    <div class="row row-cols-1">
+      <div class="col bg-dark">
+        <nav class="navbar navbar-expand-md navbar-dark">
+          <div class="container-fluid">
+            <h3 class="navbar-brand mb-0">Investment Tracker</h3>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+              <ul class="navbar-nav">
+                <li class="nav-item">
+                  <a class="nav-link active" aria-current="page" href="/website/home">Home</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#">Contact</a>
+                </li>
+              </ul>
             </div>
-          </nav>
+          </div>
+        </nav>
+      </div>
+      {%if show %}
+      {%if body.status != 200%}
+      <div class="col">
+        <div class="alert alert-danger alert-dismissible fade show">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          <strong>ERROR!</strong> {{body.message}} error occurred while updating the fund transaction. Please try again after sometime.
         </div>
-        {%if show %}
-            {%if body.status != 200%}
-            <div class="col">
-                <div class="alert alert-danger alert-dismissible fade show">
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    <strong>ERROR!</strong> {{body.message}} error occured while updating the fund transaction. Please try again after sometime.
-                </div>
-            </div>
-            {%endif%}
-            {%if body.status == 200%}
-            <div class="col">
-                <div class="alert alert-success">
-                      <a class="close" aria-current="page" href="/website/fund-list">Go back</a>
-                    <strong>{{body.message}}!</strong>
-                </div>
-            </div>
-            {%endif%}
-        {%endif%}
-        <div class="col text-black bg-success bg-gradient">
-            <br><br>
-
-              <form method="POST">
-                <fieldset class="form-group">
-                    <div class="row">
-                      <legend class="text-center col-form-label col-sm-2 pt-0"><strong>Select type of Transaction</strong></legend>
-                      <div class="col">
-                        <div class="form-check">
-                          <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="buy" checked>
-                          <label class="form-check-label" for="gridRadios1">
-                            Buying Units
-                          </label>
-                        </div>
-                        <div class="form-check">
-                          <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios2" value="sell">
-                          <label class="form-check-label" for="gridRadios2">
-                              Selling Units
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                </fieldset>
-
-                <div class="form-group row text-center">
-                  <label for="installment" class="col-sm-2 col-form-label"><strong>Amount Invested</strong><br>required only if buying new units</label>
-                  <div class="col-sm-10">
-                    <input type="text" name="installment" class="form-control" id="installment" value="0">
-                  </div>
-                </div>
-                <div class="form-group row text-center">
-                  <label for="units" class="col-sm-2 col-form-label"><strong>Units Sold</strong><br>required only if selling units</label>
-                  <div class="col-sm-10">
-                    <input type="text" name="units" class="form-control" id="units" value="0">
-                  </div>
-                </div>
-
-                <div class="form-group row text-center">
-                    <label for="purchaseDate" class="col-sm-2 col-form-label"><strong>Purchase Date</strong></label>
-                    <div class="col-sm-10">
-                      <input type="date" class="form-control" name="purchaseDate" id="purchaseDate">
-                    </div>
-                </div><br><br>
-
-                <div class="form-group row text-center">
-                  <div class="col">
-                    <button type="submit" class="btn btn-primary" value="Submit">Submit</button>
-                  </div>
-                  <div class="col">
-                    <button type="reset" class="btn btn-primary" value="reset">Reset</button>
-                  </div>
-                </div>
-            </form>
+      </div>
+      {%endif%}
+      {%if body.status == 200%}
+      <div class="col">
+        <div class="alert alert-success">
+          <a class="close" aria-current="page" href="/website/fund-list">Go back</a>
+          <strong>{{body.message}}!</strong>
         </div>
-      </div></div>
+      </div>
+      {%endif%}
+      {%endif%}
+      <div class="col text-black bg-success bg-gradient">
+        <br><br>
+        <form method="POST">
+          <fieldset class="form-group">
+            <div class="row">
+              <legend class="text-center col-form-label col-sm-2 pt-0"><strong>Select type of Transaction</strong></legend>
+              <div class="col">
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="buy" checked>
+                  <label class="form-check-label" for="gridRadios1">
+                    Buying Units
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios2" value="sell">
+                  <label class="form-check-label" for="gridRadios2">
+                    Selling Units
+                  </label>
+                </div>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="form-group row text-center">
+            <label for="installment" class="col-sm-2 col-form-label"><strong>Amount Invested</strong><br>required only if buying new units</label>
+            <div class="col-sm-10">
+              <input type="text" name="installment" class="form-control" id="installment" value="0">
+            </div>
+          </div>
+          <div class="form-group row text-center">
+            <label for="units" class="col-sm-2 col-form-label"><strong>Units Sold</strong><br>required only if selling units</label>
+            <div class="col-sm-10">
+              <input type="text" name="units" class="form-control" id="units" value="0">
+            </div>
+          </div>
+
+          <div class="form-group row text-center">
+            <label for="purchaseDate" class="col-sm-2 col-form-label"><strong>Purchase Date</strong></label>
+            <div class="col-sm-10">
+              <input type="date" class="form-control" name="purchaseDate" id="purchaseDate">
+            </div>
+          </div><br><br>
+
+          <div class="form-group row text-center">
+            <div class="col">
+              <button type="submit" class="btn btn-primary" value="Submit">Submit</button>
+            </div>
+            <div class="col">
+              <button type="reset" class="btn btn-primary" value="reset">Reset</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </body>
+
 </html>

@@ -3,9 +3,9 @@
 #ignore folder
 __pycache__
 fundList.json
-counter.db
+*.db
 Data.json
 *.bat
 test.py
 *.xlsx
-deployment
+investmentAPI

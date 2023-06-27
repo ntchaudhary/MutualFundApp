@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-import requests
+from database.dbSetupAndConnection import Connection
+from utilities.utils import MyObject
 from pydantic import BaseModel
 import pendulum
 
 depositAdd = APIRouter()
-templates = Jinja2Templates(directory="website\\UI\\deposit_UI")
+templates = Jinja2Templates(directory="website/UI/deposit_UI")
+
 
 class DepositBody(BaseModel):
     name: str
@@ -37,6 +39,32 @@ class DepositBody(BaseModel):
             start_date=start_date,
             maturity_date=maturity_date
         )
+
+def _add(body):
+    """ Add the new FD or RD entry into database"""
+    _DB = Connection()
+    response = list()
+    name = '_'.join((body.name).split(' '))
+
+    start_date = pendulum.date(year=body.start_date['year'], month=body.start_date['month'], day=body.start_date['day'])
+    maturity_date = pendulum.date(year=body.maturity_date['year'], month=body.maturity_date['month'], day=body.maturity_date['day'])
+
+    sqlstmt = f'''  INSERT INTO DEPOSIT (ID, NAME, TYPE, PRINCIPLE, RATE, FREQ, MATURITY_DATE,START_DATE) 
+                    VALUES( (select COALESCE(max(ID),0)+1 from DEPOSIT), '{name}','{body.type}','{body.principle}','{body.rate}','{body.compound_frequency}','{maturity_date}','{start_date}') '''
+    try:
+        cur = _DB.conn.cursor()
+        cur.execute(sqlstmt)
+        _DB.conn.commit()
+        response = {
+            "status" : 200,
+            "message": "DEPOSIT ADDED SUCCESSFULLY"
+        }
+    except Exception as e:
+        response = {
+            "status": 500,
+            "message": str(e)
+        }
+    return response
 
 
 @depositAdd.get('/add-deposit', response_class=HTMLResponse)
@@ -74,13 +102,50 @@ def post_index(request: Request, form_data: DepositBody = Depends(DepositBody.as
         }
     }
 
-    response = requests.post("http://127.0.0.1:8000/deposit/add", json=body)
+    response = _add(MyObject(**body))
 
     return templates.TemplateResponse(
             "deposit_add.html", 
             {
                 "request": request,
                 "show": True,
-                "body":response.json()
+                "body":response
             }
         )
+
+
+@depositAdd.delete('/delete/{fdID}')
+def _delete(fdID: str):
+    """Delete FD or RD entry from database"""
+    _DB = Connection()
+    response = list()
+    existsCheck = f''' select * from DEPOSIT where ID = '{fdID}' '''
+    sqlstmt = f''' delete from DEPOSIT where ID = '{fdID}' '''
+
+    try:
+        cur = _DB.conn.cursor() 
+        
+        value = cur.execute(existsCheck).fetchall()
+
+        if value: 
+            cur.execute(sqlstmt)
+            _DB.conn.commit()
+        else:
+            raise ValueError(f'FD with ID as {fdID} does not exists')
+
+        response = {
+            "status" : 200,
+            "message": "DEPOSIT DELETED SUCCESSFULLY"
+        }
+    except ValueError as e:
+        response = {
+            "status": 404,
+            "message": str(e)
+        }
+    except Exception as e:
+        response = {
+            "status": 500,
+            "message": str(e)
+        }
+
+    return(response)

@@ -1,15 +1,14 @@
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-import requests
 from pydantic import BaseModel
 from database.dbSetupAndConnection import Connection
 import json
 
 fundAdd = APIRouter()
-templates = Jinja2Templates(directory="website\\UI\\fund_UI")
+templates = Jinja2Templates(directory="website/UI/fund_UI")
 
-with open('mutualFundApp\\src\\static\\fundList.json', 'rb') as data:
+with open('static/mutualFundApp/fundList.json', 'rb') as data:
         jsonData11 = json.load(data)
 
 tmp = [ {'key':x[0], 'value': x[1]} for x in jsonData11.items() 
@@ -57,14 +56,13 @@ def get(request: Request):
 @fundAdd.post('/add-fund', response_class=HTMLResponse)
 def buy_post(request: Request, form_data: DepositBody = Depends(DepositBody.as_form)):
 
-    print(form_data)
-    with open('mutualFundApp\\src\\static\\Data.json', 'rb') as data:
+    with open('static/mutualFundApp/Data.json', 'rb') as data:
         jsonData = json.load(data)
 
     if form_data.key not in jsonData.keys():
         jsonData[form_data.key] = [jsonData11.get(form_data.key), 0.0, ]
 
-        with open('mutualFundApp\\src\\static\\Data.json', 'w') as newData:
+        with open('static/mutualFundApp/Data.json', 'w') as newData:
             json.dump(jsonData, newData)
 
         try:

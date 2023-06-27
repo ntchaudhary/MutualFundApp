@@ -1,7 +1,4 @@
-
 from mftool import Mftool
-from mutualFundApp.src.utilities.utils import *
-
 from fastapi import APIRouter
 
 availableFundList = APIRouter()
@@ -14,7 +11,7 @@ def _handler() -> dict:
 
         all_scheme_codes = _MF.get_scheme_codes(as_json=True)
 
-        fileObj = open('mutualFundApp\\src\\static\\fundList.json', 'w')
+        fileObj = open('static/mutualFundApp/fundList.json', 'w')
 
         fileObj.write(all_scheme_codes)
 

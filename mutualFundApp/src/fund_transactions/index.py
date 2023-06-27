@@ -1,13 +1,15 @@
 from typing import Optional
-import pandas as pd
 from mftool import Mftool
-from database.dbSetupAndConnection import Connection
-from mutualFundApp.src.static.constants import *
-from mutualFundApp.src.utilities.utils import *
-
 from fastapi import APIRouter
 from pydantic import BaseModel
+from database.dbSetupAndConnection import Connection
+import pendulum, json
+import pandas as pd
 
+CURRENT_YEAR = pendulum.today().year
+CURRENT_MONTH = pendulum.today().month
+SIP_DATE = 25
+STAMP_DUTY_PERCENT = 0.005
 
 fundTransactions = APIRouter()
 
@@ -31,7 +33,7 @@ def _buy(schemeCode: str, body: Body):
     _MF = Mftool()
     _DB_OBJ = Connection()
 
-    with open('mutualFundApp\src\static\Data.json', 'rb') as dataFile:
+    with open('static/mutualFundApp/Data.json', 'rb') as dataFile:
         CONSTANTS = json.load(dataFile)
     SCHEME_CODE = list(CONSTANTS.keys())
 
@@ -84,7 +86,7 @@ def _sell(schemeCode: str, body: Body):
 
     _DB_OBJ = Connection()
     
-    with open('mutualFundApp\src\static\Data.json', 'rb') as dataFile:
+    with open('static/mutualFundApp/Data.json', 'rb') as dataFile:
         CONSTANTS = json.load(dataFile)
     SCHEME_CODE = list(CONSTANTS.keys())
 
