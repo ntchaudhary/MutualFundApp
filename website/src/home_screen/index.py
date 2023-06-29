@@ -166,7 +166,7 @@ def calculateGainLossOnUnits(schemeCode, units, investedAmount) -> Decimal:
 @home.get('/home', response_class=HTMLResponse)
 def index(request: Request):
 
-    listOfInstruments = ['Mutual Funds', 'Deposits', 'Provident Fund']
+    listOfInstruments = ['Mutual Funds', 'Deposits', 'Provident Fund', 'Gold']
     deposit = 0
 
     excel_data_df = pd.read_excel('database/PF_BOOK.xlsx', sheet_name='total')
@@ -183,7 +183,7 @@ def index(request: Request):
         deposit = int( (sumOfDeposit("principle") + sumOfDeposit("interest_earned")) )
 
     fund = int(sumOfFund("balance_units_value"))
-    
+     
     worth = fund+deposit+pf_amount
     body = list()
 
@@ -194,7 +194,7 @@ def index(request: Request):
             "type": x,
             "add_new_url" : "/website/add-fund",
             "details_url" : "/website/fund-list",
-            "button_text" : "Add New Fund"
+            "button_text" : "Add New"
         }
         if x == 'Deposits':
             tmp_dct = {
@@ -202,7 +202,7 @@ def index(request: Request):
             "type": x,
             "add_new_url" : "/website/add-deposit",
             "details_url" : "/website/deposit-list",
-            "button_text" : "Add New Deposit"
+            "button_text" : "Add New"
         }
         if x == 'Provident Fund':
             tmp_dct = {
@@ -210,10 +210,16 @@ def index(request: Request):
             "type": x,
             "add_new_url" : "#",
             "details_url" : "#",
-            "button_text" : "X"
+            "button_text" : ""
         }
-        if x.lower() == '':
-            pass
+        if x == 'Gold':
+            tmp_dct = {
+            "amount": "0.0",
+            "type": x,
+            "add_new_url" : "#",
+            "details_url" : "#",
+            "button_text" : "Add New"
+        }
 
         body.append(tmp_dct)
 
