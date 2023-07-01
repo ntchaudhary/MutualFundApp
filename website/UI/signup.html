@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Sign Up</title>
   <style>
@@ -8,7 +9,7 @@
       background-color: #f1f1f1;
       padding: 20px;
     }
-    
+
     .container {
       max-width: 400px;
       background-color: #ffffff;
@@ -17,22 +18,22 @@
       padding: 20px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-    
+
     h2 {
       text-align: center;
       margin-bottom: 30px;
     }
-    
+
     .form-group {
       margin-bottom: 20px;
     }
-    
+
     .form-group label {
       display: block;
       font-weight: bold;
       margin-bottom: 5px;
     }
-    
+
     .form-group input {
       width: 100%;
       padding: 10px;
@@ -40,7 +41,7 @@
       border: 1px solid #ccc;
       box-sizing: border-box;
     }
-    
+
     .form-group button {
       display: block;
       width: 100%;
@@ -51,16 +52,16 @@
       border-radius: 3px;
       cursor: pointer;
     }
-    
+
     .form-group button:hover {
       background-color: #45a049;
     }
-    
+
     .switch-form {
       text-align: center;
       margin-top: 20px;
     }
-    
+
     .switch-form a {
       color: #4CAF50;
     }
@@ -69,7 +70,7 @@
       text-align: center;
       margin-top: 20px;
     }
-    
+
     .back-button a {
       display: inline-block;
       padding: 10px 20px;
@@ -80,6 +81,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     {% if body.showForm %}
@@ -102,17 +104,16 @@
       </div>
     </form>
     <div class="back-button">
-      <a href="javascript:history.back()" class="btn btn-sm fw-bold bg-white">Back</a> 
+      <a href="javascript:history.back()" class="btn btn-sm fw-bold bg-white">Back</a>
     </div>
     {% endif %}
     {% if body.showMsg %}
-    <div class="switch-form"></div>
-      <h2>Sign-Up is successful</h2>
-      <h5>Please note Account ID for future login</h5>
-      <h3>Account ID {{ body.account_id }}</h3>
-      <p>Go back to sign-in page <a href="/sign-in">Sign In</a></p>
-    </div>
+    <h2>Sign-Up is successful</h2>
+    <h5>Please note Account ID for future login</h5>
+    <h3>Account ID {{ body.account_id }}</h3>
+    <p>Go back to sign-in page <a href="/sign-in">Sign In</a></p>
     {% endif %}
   </div>
 </body>
+
 </html>
