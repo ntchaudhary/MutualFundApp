@@ -146,7 +146,7 @@
                   givenNumber = '{{ x.AMOUNT_INVESTED }}';
                   nfObject = new Intl.NumberFormat('en-IN');
                   output = nfObject.format(givenNumber);
-                  document.getElementById("{{ x.UNITS_DATE }}").innerHTML = "₹ " + output;
+                  document.getElementById("{{ x.UNITS_DATE }}").innerHTML = "₹" + output;
                 }
                 separateNumber();
               </script>

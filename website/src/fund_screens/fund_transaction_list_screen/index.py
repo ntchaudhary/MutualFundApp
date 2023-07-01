@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import pandas as pd
 from mftool import Mftool
+
 from database.dbSetupAndConnection import Connection
+from utilities.auth import auth_wrapper
 
 fundTransactionList = APIRouter()
 templates = Jinja2Templates(directory="website/UI/fund_UI")
@@ -37,7 +39,7 @@ def _fund_transactions_list(schemeCode) -> dict:
     return (response)
 
 @fundTransactionList.get('/fund-transactions-list/{schemeCode}', response_class=HTMLResponse)
-def index(request: Request):
+def index(request: Request, user_details = Depends(auth_wrapper)):
 
     # api_url = f"""http://127.0.0.1:8000/mutual-fund/fund-transactions-list/{request.path_params.get('schemeCode')}"""
 

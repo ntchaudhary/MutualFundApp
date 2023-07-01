@@ -2,8 +2,11 @@ from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from database.dbSetupAndConnection import Connection
 import json
+
+from utilities.auth import auth_wrapper
+from database.dbSetupAndConnection import Connection
+
 
 fundAdd = APIRouter()
 templates = Jinja2Templates(directory="website/UI/fund_UI")
@@ -41,7 +44,7 @@ class DepositBody(BaseModel):
 
 
 @fundAdd.get('/add-fund', response_class=HTMLResponse)
-def get(request: Request):
+def get(request: Request, user_details = Depends(auth_wrapper)):
 
     
     return templates.TemplateResponse(
@@ -54,7 +57,7 @@ def get(request: Request):
     )
 
 @fundAdd.post('/add-fund', response_class=HTMLResponse)
-def buy_post(request: Request, form_data: DepositBody = Depends(DepositBody.as_form)):
+def buy_post(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
 
     with open('static/mutualFundApp/Data.json', 'rb') as data:
         jsonData = json.load(data)

@@ -115,7 +115,7 @@
     function separateNumber(givenNumber, tag_id) {
       const nfObject = new Intl.NumberFormat('en-IN');
       const output = nfObject.format(givenNumber);
-      document.getElementById(tag_id).innerHTML = "₹ " + output;
+      document.getElementById(tag_id).innerHTML = "₹" + output;
     }
 
     separateNumber('{{invested}}', 'invested');

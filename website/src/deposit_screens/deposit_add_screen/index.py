@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-from database.dbSetupAndConnection import Connection
-from utilities.utils import MyObject
 from pydantic import BaseModel
 import pendulum
+
+from database.dbSetupAndConnection import Connection
+from utilities.utils import MyObject
+from utilities.auth import auth_wrapper
 
 depositAdd = APIRouter()
 templates = Jinja2Templates(directory="website/UI/deposit_UI")
@@ -68,7 +70,7 @@ def _add(body):
 
 
 @depositAdd.get('/add-deposit', response_class=HTMLResponse)
-def get_index(request: Request):
+def get_index(request: Request, user_details = Depends(auth_wrapper)):
 
     return templates.TemplateResponse(
         "deposit_add.html", 
@@ -79,7 +81,7 @@ def get_index(request: Request):
     )
 
 @depositAdd.post('/add-deposit', response_class=HTMLResponse)
-def post_index(request: Request, form_data: DepositBody = Depends(DepositBody.as_form)):
+def post_index(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
 
     start = pendulum.parse(form_data.start_date, strict=False)
     maturity = pendulum.parse(form_data.maturity_date, strict=False)

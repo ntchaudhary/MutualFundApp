@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sign In/Sign Up</title>
+  <title>Sign Up</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -64,24 +64,55 @@
     .switch-form a {
       color: #4CAF50;
     }
+
+    .back-button {
+      text-align: center;
+      margin-top: 20px;
+    }
+    
+    .back-button a {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #ccc;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 3px;
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    {% if body.showForm %}
     <h2>Sign Up</h2>
-    <form>
+    <form method="POST">
       <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="email" id="email" placeholder="Enter your email" required>
+        <label for="account_id">Your new Account ID:</label>
+        <input type="text" name="account_id" id="account_id" value="{{ body.account_id }}" readonly>
+      </div>
+      <div class="form-group">
+        <label for="profile">User:</label>
+        <input type="text" name="profile" id="profile" placeholder="Enter your user profile name" required>
       </div>
       <div class="form-group">
         <label for="password">Password:</label>
-        <input type="password" id="password" placeholder="Enter your password" required>
+        <input type="password" name="password" id="password" placeholder="Enter your password" required>
       </div>
       <div class="form-group">
-        <button type="submit">Submit</button>
+        <button type="submit" value="Submit">Submit</button>
       </div>
     </form>
+    <div class="back-button">
+      <a href="javascript:history.back()" class="btn btn-sm fw-bold bg-white">Back</a> 
+    </div>
+    {% endif %}
+    {% if body.showMsg %}
+    <div class="switch-form"></div>
+      <h2>Sign-Up is successful</h2>
+      <h5>Please note Account ID for future login</h5>
+      <h3>Account ID {{ body.account_id }}</h3>
+      <p>Go back to sign-in page <a href="/sign-in">Sign In</a></p>
+    </div>
+    {% endif %}
   </div>
 </body>
 </html>

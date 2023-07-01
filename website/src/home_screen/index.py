@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from mftool import Mftool
 from decimal import Decimal
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+
+from utilities.auth import auth_wrapper
 from database.dbSetupAndConnection import Connection
 
 import pandas as pd
@@ -11,7 +13,7 @@ import json, pendulum
 from utilities.utils import calculateSumFromListOFDict, convertResponse
 
 home = APIRouter()
-templates = Jinja2Templates(directory="website/UI")
+templates = Jinja2Templates(directory="website/UI") 
 
 _MF = Mftool()
 
@@ -164,7 +166,7 @@ def calculateGainLossOnUnits(schemeCode, units, investedAmount) -> Decimal:
 
 
 @home.get('/home', response_class=HTMLResponse)
-def index(request: Request):
+def index(request: Request, user_details = Depends(auth_wrapper)):
 
     listOfInstruments = ['Mutual Funds', 'Deposits', 'Provident Fund', 'Gold']
     deposit = 0

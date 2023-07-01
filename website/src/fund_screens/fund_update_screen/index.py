@@ -1,13 +1,16 @@
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-from utilities.utils import MyObject
-from database.dbSetupAndConnection import Connection
 from pydantic import BaseModel
 from typing import Optional
 from mftool import Mftool
 import pandas as pd
 import pendulum,json
+
+from utilities.utils import MyObject
+from utilities.auth import auth_wrapper
+from database.dbSetupAndConnection import Connection
+
 
 fundUpdate = APIRouter()
 templates = Jinja2Templates(directory="website/UI/fund_UI")
@@ -162,7 +165,7 @@ def _sell(schemeCode, body):
 
 
 @fundUpdate.get('/{schemeCode}/update', response_class=HTMLResponse)
-def buy_get(schemeCode: str, request: Request):
+def buy_get(schemeCode: str, request: Request, user_details = Depends(auth_wrapper)):
 
     return templates.TemplateResponse(
         "fund_update.html", 
@@ -173,7 +176,7 @@ def buy_get(schemeCode: str, request: Request):
     )
 
 @fundUpdate.post('/{schemeCode}/update', response_class=HTMLResponse)
-def buy_post(request: Request, form_data: DepositBody = Depends(DepositBody.as_form)):
+def buy_post(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
 
     purchaseDate = pendulum.parse(form_data.purchaseDate, strict=False)
 

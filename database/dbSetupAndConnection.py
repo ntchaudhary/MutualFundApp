@@ -1,10 +1,10 @@
-import json
-import sqlite3
+import json, boto3, sqlite3
 
 
 class Connection:
     def __init__(self):
         self.conn = sqlite3.connect("database/counter.db")
+        self.dynamodb = boto3.resource('dynamodb') 
 
     def insertFileData(self, code, file=(None, None, None)):
         sqlstmt = f''' INSERT INTO FUND_{code} (UNITS_DATE, NUMBER_OF_UNITS, AMOUNT_INVESTED) VALUES(?, ?, ?)'''

@@ -37,6 +37,40 @@
 
   <!-- Custom styles for this template -->
   <link href="cover.css" rel="stylesheet">
+
+  <script type="text/javascript">
+    function separateNumber(givenNumber, tag_id) 
+    {
+
+        nfObject = new Intl.NumberFormat('en-IN');
+        output = nfObject.format(givenNumber);
+
+        document.getElementById(tag_id).innerHTML = "₹"+output;
+    }
+
+    function deleteEntry(fdID) 
+    {
+        var txt = "http://127.0.0.1:8000/website/delete/"+fdID;
+        let options = {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 
+                    'application/json;charset=utf-8'
+            }
+        }
+        if (confirm("Are you sure you want to delete deposit entry")) 
+        {
+          let fetchRes = fetch(txt,options);
+          fetchRes.then(res =>
+            res.json()).then(d => {
+              alert(d.message);
+            })
+          window.location.reload();
+        } else {
+          window.location.reload();
+        }
+    }
+  </script>
 </head>
 
 <body class="d-flex text-center text-white">
@@ -59,36 +93,59 @@
 
       <div class="col bg-black bg-gradient border border-dark">
         <br>
-        <h1>Number of deposits -- <span class="my-0">{{count}}</span></h1>
+        <h1>Number of deposits - <span class="my-0">{{count}}</span></h1>
         <br><br>
         <div class="row">
           <div class="col">
-            <h5>Total Principle</h5>
+            <div class="container text-center">
+              <div class="row align-items-start">
+                <div class="col">
+                  <h5>Total Invested</h5>
+                </div>
+                <div class="col">
+                  <h2 id="totalPrinciple">{{totalPrinciple}}</h2>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="col">
-            <h5>Total Interest Earned</h5>
+            <div class="container text-center">
+              <div class="row align-items-start">
+                <div class="col">
+                  <h5>Accrued Interest</h5>
+                </div>
+                <div class="col">
+                  <h2 id="total_interest_earned">{{total_interest_earned}}</h2>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="col">
-            <h5>Matured Deposits</h5>
+            <div class="container text-center">
+              <div class="row align-items-start">
+                <div class="col">
+                  <h5>Matured Deposits</h5>
+                </div>
+                <div class="col">
+                  <h2>{{numberOfMatured}}</h2>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="col">
-            <div></div>
+            <div class="container text-center">
+              <div class="row align-items-start">
+                <div class="col">
+                  <a href="/website/add-deposit" class="btn btn-sm fw-bold bg-white">Add New Deposit</a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="row">
-          <div class="col">
-            <h2 id="totalPrinciple">{{totalPrinciple}}</h2>
-          </div>
-          <div class="col">
-            <h2 id="total_interest_earned">{{total_interest_earned}}</h2>
-          </div>
-          <div class="col">
-            <h2>{{numberOfMatured}}</h2>
-          </div>
-          <div class="col">
-            <a href="/website/add-deposit" class="btn btn-sm fw-bold bg-white">Add New Deposits</a>
-          </div>
-        </div>
+        <script>
+          separateNumber('{{totalPrinciple}}','totalPrinciple');
+          separateNumber('{{total_interest_earned}}','total_interest_earned');
+        </script>
         <br><br>
       </div>
 
@@ -105,63 +162,77 @@
 
               <div class="col">
                 <div class="container text-center">
-
-                  {% if x.installment %}
                   <div class="row align-items-start">
                     <div class="col">
-                      <strong>Installment :--</strong>
-                    </div>
-                    <div class="col">
-                      <p id="{{ x.id }}install">{{ x.installment }}</p>
-                    </div>
-                  </div>
-                  {% endif %}
-
-                  <div class="row align-items-start">
-                    <div class="col">
-                      <strong>Principle :--</strong>
+                      <strong>Invested</strong>
                     </div>
                     <div class="col">
                       <p id="{{ x.name }}principle">{{ x.principle }}</p>
                     </div>
+                  {% if x.installment %}
+                    <div class="col">
+                      <strong>Installment</strong>
+                    </div>
+                    <div class="col">
+                      <p id="{{ x.id }}install">{{ x.installment }}</p>
+                    </div>
+                    <script>
+                      separateNumber('{{x.installment}}','{{x.id}}install');
+                    </script>
+                  {% endif %}
                   </div>
-
-                  <div class="row align-items-start">
-                    <div class="col">
-                      <strong>Maturity :--</strong>
-                    </div>
-                    <div class="col">
-                      <p id="{{ x.name }}maturity_amount">{{ x.maturity_amount }}</p>
-                    </div>
-                  </div>
-
-                  <div class="row align-items-start">
-                    <div class="col">
-                      <strong>Int. Earned :--</strong>
-                    </div>
-                    <div class="col">
-                      <p id="{{ x.name }}interest_earned">{{ x.interest_earned }}</p>
-                    </div>
-                  </div>
-
                 </div>
               </div>
 
               <div class="col">
                 <div class="container text-center">
-
                   <div class="row align-items-start">
                     <div class="col">
-                      <strong>Interest Rate :-</strong>
+                      <strong>Maturity</strong>
                     </div>
                     <div class="col">
-                      <p>{{ x.rate }} %</p>
+                      <p id="{{ x.name }}maturity_amount">{{ x.maturity_amount }}</p>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="container text-center">
+                  <div class="row align-items-start">
+                    <div class="col">
+                      <strong>Int. Earned</strong>
+                    </div>
+                    <div class="col">
+                      <p id="{{ x.name }}interest_earned">{{ x.interest_earned }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <script>
+                separateNumber('{{x.principle}}','{{x.name}}principle');
+                separateNumber('{{x.maturity_amount}}','{{x.name}}maturity_amount');
+                separateNumber('{{x.interest_earned}}','{{x.name}}interest_earned');
+              </script>
+              <div class="col">
+                <div class="container text-center">
 
                   <div class="row align-items-start">
                     <div class="col">
-                      <strong>Duration :--</strong>
+                      <strong>Interest Rate</strong>
+                    </div>
+                    <div class="col">
+                      <p>{{ x.rate }}%</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="container text-center">
+                  <div class="row align-items-start">
+                    <div class="col">
+                      <strong>Duration</strong>
                     </div>
                     <div class="col">
                       <p>{{ x.duration }}</p>
@@ -176,25 +247,33 @@
 
                   <div class="row align-items-start">
                     <div class="col">
-                      <strong>Start Dt. :--</strong>
+                      <strong>Start Dt.</strong>
                     </div>
                     <div class="col">
                       <p>{{ x.start_date }}</p>
                     </div>
                   </div>
+                </div>
+              </div>
 
+              <div class="col">
+                <div class="container text-center">
                   <div class="row align-items-start">
                     <div class="col">
-                      <strong>Maturity Dt. :-</strong>
+                      <strong>Maturity Dt.</strong>
                     </div>
                     <div class="col">
                       <p>{{ x.maturity_date }}</p>
                     </div>
                   </div>
+                </div>
+              </div>
 
+              <div class="col">
+                <div class="container text-center">
                   <div class="row align-items-start">
                     <div class="col">
-                      <strong>Matured :--</strong>
+                      <strong>Matured</strong>
                     </div>
                     <div class="col">
                       <p>{{ x.isMatured }}</p>
