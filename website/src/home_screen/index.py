@@ -3,6 +3,7 @@ from mftool import Mftool
 from decimal import Decimal
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from boto3.dynamodb.conditions import Key
 
 from utilities.auth import auth_wrapper
 from database.dbSetupAndConnection import Connection
@@ -17,28 +18,29 @@ templates = Jinja2Templates(directory="website/UI")
 
 _MF = Mftool()
 
-def deposit_details() -> dict:
+def deposit_details(user_details) -> dict:
     """Return list of all the investment made in fixed and Recurring desposits and the amount they have made till today"""
     _DB_OBJ = Connection()
+    table = _DB_OBJ.dynamodb.Table('deposits')
     response = list()
     status_code = 404
     existsCheck = f''' select ID, NAME, TYPE, PRINCIPLE, RATE, FREQ, START_DATE, MATURITY_DATE from DEPOSIT '''
 
     try:
-        cur = _DB_OBJ.conn.cursor() 
-        
-        values = cur.execute(existsCheck).fetchall()
+        values = table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) )
 
-        if values:
-            for value in values:
-                id = value[0]
-                name = ' '.join((value[1]).split('_'))
-                depositType = value[2]
-                principle = value[3]
-                rate = value[4]
-                freq = value[5]
-                start = pendulum.parse(value[6], strict=False).date() 
-                maturity = pendulum.parse(value[7], strict=False).date() 
+        if values['Items']:
+            for value in values['Items']:
+                if user_details['profile']!=value['profile']:
+                    continue
+                id = value['id']
+                name = value['name']
+                depositType = value['type']
+                principle = float(value['principle'])
+                rate = float(value['rate'])
+                freq = float(value['frequency'])
+                start = pendulum.parse(value['start_date'], strict=False).date() 
+                maturity = pendulum.parse(value['maturity_date'], strict=False).date() 
 
                 if depositType == 'FD':
                     c_time = ((pendulum.today().date()-start).in_days())/365
@@ -176,7 +178,7 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
 
     response_fund = mutual_fund_fund_details()         # requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
 
-    response_deposit = deposit_details()               # requests.get("http://127.0.0.1:8000/deposit/details")
+    response_deposit = deposit_details(user_details)               # requests.get("http://127.0.0.1:8000/deposit/details")
 
     sumOfFund = calculateSumFromListOFDict(response_fund)
 

@@ -1,4 +1,5 @@
 import json, boto3, sqlite3
+from decimal import Decimal
 
 
 class Connection:
@@ -23,6 +24,26 @@ class Connection:
         cur = self.conn.cursor()
         cur.execute(sqlstmt, (date,))
         self.conn.commit()
+
+    def insertDynamodbRow(self, tableName, insertData: list, convert=False):
+        table = self.dynamodb.Table(tableName)
+        for insert_json in insertData:
+            if convert:
+                insert_json = json.loads(json.dumps(insert_json), parse_float=Decimal)
+            response = table.put_item(Item=insert_json)
+
+    def updateDynamodbRow(self,tableName, key, update_expression, expression_attribute_values, expression_attribute_name):
+        table = self.dynamodb.Table(tableName)
+        response = table.update_item(
+            Key=key,
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues=expression_attribute_values,
+            ExpressionAttributeNames=expression_attribute_name
+        )
+
+    def deleteDynamodbRow(self, tableName, key):
+        table = self.dynamodb.Table(tableName)
+        response = table.delete_item( Key = key )
 
     def createFundTable(self, code):
         strObj = f''' CREATE TABLE FUND_{code}

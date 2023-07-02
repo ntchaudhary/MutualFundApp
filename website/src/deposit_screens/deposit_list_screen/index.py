@@ -13,7 +13,7 @@ templates = Jinja2Templates(directory="website/UI/deposit_UI")
 @depositList.get('/deposit-list', response_class=HTMLResponse)
 def index(request: Request, user_details = Depends(auth_wrapper)):
 
-    response = deposit_details()
+    response = deposit_details(user_details)
 
     if str(response.get('status')) == '200':
         calculateSum = calculateSumFromListOFDict(response.get('body'))

@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from boto3.dynamodb.conditions import Key
 from pydantic import BaseModel
-import pendulum
+from decimal import Decimal
+import pendulum, json
 
 from database.dbSetupAndConnection import Connection
 from utilities.utils import MyObject
@@ -15,8 +17,8 @@ templates = Jinja2Templates(directory="website/UI/deposit_UI")
 class DepositBody(BaseModel):
     name: str
     type: str
-    principle: float
-    rate: float
+    principle: str
+    rate: str
     compound_frequency: int
     start_date: str
     maturity_date: str
@@ -25,9 +27,9 @@ class DepositBody(BaseModel):
     def as_form(
         cls,
         name: str = Form(...),
-        principle: float = Form(...),
+        principle: str = Form(...),
         gridRadios: str = Form(...),
-        rate: float = Form(...),
+        rate: str = Form(...),
         freqRadios: int = Form(...),
         start_date: str = Form(...),
         maturity_date: str = Form(...)
@@ -42,21 +44,46 @@ class DepositBody(BaseModel):
             maturity_date=maturity_date
         )
 
-def _add(body):
+def _add(body, user_details):
     """ Add the new FD or RD entry into database"""
+
     _DB = Connection()
-    response = list()
-    name = '_'.join((body.name).split(' '))
+
+    table = _DB.dynamodb.Table('deposits')
 
     start_date = pendulum.date(year=body.start_date['year'], month=body.start_date['month'], day=body.start_date['day'])
     maturity_date = pendulum.date(year=body.maturity_date['year'], month=body.maturity_date['month'], day=body.maturity_date['day'])
 
-    sqlstmt = f'''  INSERT INTO DEPOSIT (ID, NAME, TYPE, PRINCIPLE, RATE, FREQ, MATURITY_DATE,START_DATE) 
-                    VALUES( (select COALESCE(max(ID),0)+1 from DEPOSIT), '{name}','{body.type}','{body.principle}','{body.rate}','{body.compound_frequency}','{maturity_date}','{start_date}') '''
+    response = table.query(
+        KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])),
+        ScanIndexForward=False,  # Set to True for ascending order, False for descending order
+        Limit = 1
+    )
+
+    if response["Items"]:
+        id = response["Items"][0]["id"]+1
+    else:
+        id = 1
+
+    
+    insert_json = {
+            "account_id":       Decimal(user_details['account_id']), 	    # number
+            "frequency":        Decimal(body.compound_frequency),			# number
+            "id":               id,					                        # number
+            "maturity_date":    maturity_date.for_json(),		            # string	pendulum.for_json()
+            "name":             body.name,				                    # string
+            "principle":        Decimal(body.principle),		            # number
+            "profile":          user_details["profile"],				    # string
+            "rate":             Decimal(body.rate),		                    # float
+            "start_date":       start_date.for_json(),            		    # string	pendulum.for_json()
+            "type":             body.type		                            # string
+        }
+
+    _DB.insertDynamodbRow('deposits',insertData=[insert_json,])
+    
     try:
-        cur = _DB.conn.cursor()
-        cur.execute(sqlstmt)
-        _DB.conn.commit()
+        print(insert_json)
+        
         response = {
             "status" : 200,
             "message": "DEPOSIT ADDED SUCCESSFULLY"
@@ -104,7 +131,7 @@ def post_index(request: Request, form_data: DepositBody = Depends(DepositBody.as
         }
     }
 
-    response = _add(MyObject(**body))
+    response = _add(MyObject(**body), user_details)
 
     return templates.TemplateResponse(
             "deposit_add.html", 
@@ -117,32 +144,16 @@ def post_index(request: Request, form_data: DepositBody = Depends(DepositBody.as
 
 
 @depositAdd.delete('/delete/{fdID}')
-def _delete(fdID: str):
+def _delete(fdID: str, user_details = Depends(auth_wrapper)):
     """Delete FD or RD entry from database"""
     _DB = Connection()
-    response = list()
-    existsCheck = f''' select * from DEPOSIT where ID = '{fdID}' '''
-    sqlstmt = f''' delete from DEPOSIT where ID = '{fdID}' '''
 
     try:
-        cur = _DB.conn.cursor() 
-        
-        value = cur.execute(existsCheck).fetchall()
-
-        if value: 
-            cur.execute(sqlstmt)
-            _DB.conn.commit()
-        else:
-            raise ValueError(f'FD with ID as {fdID} does not exists')
+        _DB.deleteDynamodbRow( 'deposits', {'account_id': Decimal(user_details['account_id']),'id': Decimal(fdID)} )
 
         response = {
             "status" : 200,
             "message": "DEPOSIT DELETED SUCCESSFULLY"
-        }
-    except ValueError as e:
-        response = {
-            "status": 404,
-            "message": str(e)
         }
     except Exception as e:
         response = {
