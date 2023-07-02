@@ -2,9 +2,7 @@
 *.exe
 #ignore folder
 __pycache__
-fundList.json
 *.db
-Data.json
 *.bat
 test.py
 *.xlsx
