@@ -33,6 +33,8 @@ def signin_get(request: Request):
 @signIN.post('/sign-in')
 def signin_post(request: Request, auth_details: AuthDetails = Depends(AuthDetails.as_form)):
 
+    auth_details.profile = str(auth_details.profile).lower()
+
     response = table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(auth_details.account_id)) & Key('profile').eq(auth_details.profile.lower()) )
 
     if response['ScannedCount'] == 0:
