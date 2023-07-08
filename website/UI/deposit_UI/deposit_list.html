@@ -179,7 +179,7 @@
                       <strong>Invested</strong>
                     </div>
                     <div class="col">
-                      <p id="{{ x.name }}principle">{{ x.principle }}</p>
+                      <p id="{{ x.id }}principle">{{ x.principle }}</p>
                     </div>
                   {% if x.installment %}
                     <div class="col">
@@ -203,7 +203,7 @@
                       <strong>Maturity</strong>
                     </div>
                     <div class="col">
-                      <p id="{{ x.name }}maturity_amount">{{ x.maturity_amount }}</p>
+                      <p id="{{ x.id }}maturity_amount">{{ x.maturity_amount }}</p>
                     </div>
                   </div>
                 </div>
@@ -216,15 +216,15 @@
                       <strong>Int. Earned</strong>
                     </div>
                     <div class="col">
-                      <p id="{{ x.name }}interest_earned">{{ x.interest_earned }}</p>
+                      <p id="{{ x.id }}interest_earned">{{ x.interest_earned }}</p>
                     </div>
                   </div>
                 </div>
               </div>
               <script>
-                separateNumber('{{x.principle}}','{{x.name}}principle');
-                separateNumber('{{x.maturity_amount}}','{{x.name}}maturity_amount');
-                separateNumber('{{x.interest_earned}}','{{x.name}}interest_earned');
+                separateNumber('{{x.principle}}','{{x.id}}principle');
+                separateNumber('{{x.maturity_amount}}','{{x.id}}maturity_amount');
+                separateNumber('{{x.interest_earned}}','{{x.id}}interest_earned');
               </script>
               <div class="col">
                 <div class="container text-center">

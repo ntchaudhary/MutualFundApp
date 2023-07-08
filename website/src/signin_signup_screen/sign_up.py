@@ -50,7 +50,8 @@ def signup_post(request: Request, auth_details: AuthDetails = Depends(AuthDetail
     x = {
         "account_id": Decimal(auth_details.account_id),
         "profile": str(auth_details.profile).lower(),
-        "password_hash": hashed_password
+        "password_hash": hashed_password,
+        "fund_owned" : []
     }
 
     reponse = table.put_item(Item=x)

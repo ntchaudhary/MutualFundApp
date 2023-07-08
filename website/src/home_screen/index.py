@@ -118,21 +118,32 @@ def deposit_details(user_details) -> dict:
 
     return({"status" : status_code, "body": response })
 
-def mutual_fund_fund_details() -> dict:
+def mutual_fund_fund_details(user_details) -> dict:
     """Return current value of all the invested funds along with gain and loss on per fund basis"""
     _DB_OBJ = Connection()
     response = list()
 
-    with open('static/mutualFundApp/Data.json', 'rb') as dataFile:
-        CONSTANTS = json.load(dataFile)
-    SCHEME_CODE = list(CONSTANTS.keys())
+    table_name = 'account_and_user_profile'
+    table = _DB_OBJ.dynamodb.Table(table_name)
+    table2 = _DB_OBJ.dynamodb.Table('fund_details')
+
+    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
+    jsonData = jsonData.get('Items')[0]
+    SCHEME_CODE = jsonData.get('fund_owned') 
 
     try:
         for schemeCode in SCHEME_CODE:
             strObj = f'''Select * from FUND_{schemeCode} WHERE TAX_HARVESTED = 'NO';'''
             dataframe = pd.read_sql_query(strObj, _DB_OBJ.conn)
 
-            currentMarketPrice = _MF.calculate_balance_units_value( code=schemeCode, balance_units=dataframe.NUMBER_OF_UNITS.sum() )
+            currentMarketPrice = table2.query(KeyConditionExpression = Key('fund_id').eq(f"{schemeCode}") )['Items'][0]
+            currentMarketPrice['scheme_code'] = currentMarketPrice['fund_id']
+            del currentMarketPrice['fund_id']
+
+            market_value = round(float(dataframe.NUMBER_OF_UNITS.sum())*float(currentMarketPrice['nav'])) # current market value of all units
+            currentMarketPrice["balance_units_value"] = market_value
+
+            # currentMarketPrice = _MF.calculate_balance_units_value( code=schemeCode, balance_units=dataframe.NUMBER_OF_UNITS.sum() )
             currentMarketPrice['gainLoss'] = Decimal( currentMarketPrice['balance_units_value'] ) - dataframe.AMOUNT_INVESTED.sum()
 
             currentMarketPrice['invested'] = dataframe.AMOUNT_INVESTED.sum()
@@ -144,12 +155,14 @@ def mutual_fund_fund_details() -> dict:
             data1 = data1.sort_index(inplace=False)
             endDate = pendulum.today('local').subtract(years=1).date()
             data1 = data1.loc[:endDate]
+
+            currentMarketPrice['harvest'] = round( float(data1.NUMBER_OF_UNITS.sum())*float(currentMarketPrice['nav']) ) - data1.AMOUNT_INVESTED.sum()
             
-            currentMarketPrice['harvest'] = calculateGainLossOnUnits(
-                                                schemeCode=schemeCode,
-                                                units=data1.NUMBER_OF_UNITS.sum(),
-                                                investedAmount=data1.AMOUNT_INVESTED.sum()
-                                            )
+            # currentMarketPrice['harvest'] = calculateGainLossOnUnits(
+            #                                     schemeCode=schemeCode,
+            #                                     units=data1.NUMBER_OF_UNITS.sum(),
+            #                                     investedAmount=data1.AMOUNT_INVESTED.sum()
+            #                                 )
                                             
             currentMarketPrice['harvest_unit'] = round( data1.NUMBER_OF_UNITS.sum(), 2 ) if currentMarketPrice['harvest'] > 0 else 0
 
@@ -160,23 +173,23 @@ def mutual_fund_fund_details() -> dict:
         }
     return response
 
-def calculateGainLossOnUnits(schemeCode, units, investedAmount) -> Decimal:
-    """calculate the return on the units of a single fund"""
-    currentMarketPrice = _MF.calculate_balance_units_value(code=schemeCode, balance_units=units)
-    gainLoss = Decimal( currentMarketPrice['balance_units_value'] ) - investedAmount
-    return gainLoss
+# def calculateGainLossOnUnits(schemeCode, units, investedAmount) -> Decimal:
+#     """calculate the return on the units of a single fund"""
+#     currentMarketPrice = _MF.calculate_balance_units_value(code=schemeCode, balance_units=units)
+#     gainLoss = Decimal( currentMarketPrice['balance_units_value'] ) - investedAmount
+#     return gainLoss
 
 
 @home.get('/home', response_class=HTMLResponse)
 def index(request: Request, user_details = Depends(auth_wrapper)):
 
-    listOfInstruments = ['Mutual Funds', 'Deposits', 'Provident Fund', 'Gold']
+    listOfInstruments = ['Mutual Funds', 'Deposits', 'Provident Fund', 'Gold', 'Bank Balance']
     deposit = 0
 
     excel_data_df = pd.read_excel('database/PF_BOOK.xlsx', sheet_name='total')
     pf_amount = excel_data_df.at[4,'Values']
 
-    response_fund = mutual_fund_fund_details()         # requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
+    response_fund = mutual_fund_fund_details(user_details)         # requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
 
     response_deposit = deposit_details(user_details)               # requests.get("http://127.0.0.1:8000/deposit/details")
 
@@ -187,8 +200,11 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
         deposit = int( (sumOfDeposit("principle") + sumOfDeposit("interest_earned")) )
 
     fund = int(sumOfFund("balance_units_value"))
+
+    bank_balance = 150000
+    gold_amount = 0
      
-    worth = fund+deposit+pf_amount
+    worth = fund+deposit+pf_amount+gold_amount+bank_balance
     body = list()
 
     for x in listOfInstruments:
@@ -218,11 +234,19 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
         }
         if x == 'Gold':
             tmp_dct = {
-            "amount": "0.0",
+            "amount": gold_amount,
             "type": x,
             "add_new_url" : "#",
             "details_url" : "#",
             "button_text" : "Add New"
+        }
+        if x == 'Bank Balance':
+            tmp_dct = {
+            "amount": bank_balance,
+            "type": x,
+            "add_new_url" : "#",
+            "details_url" : "#",
+            "button_text" : "update"
         }
 
         body.append(tmp_dct)

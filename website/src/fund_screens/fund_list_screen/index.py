@@ -13,7 +13,7 @@ templates = Jinja2Templates(directory="website/UI/fund_UI")
 @fundDetails.get('/fund-list', response_class=HTMLResponse)
 def index(request: Request, user_details = Depends(auth_wrapper)):
 
-    response = mutual_fund_fund_details() # requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
+    response = mutual_fund_fund_details(user_details) # requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
 
     calculateSum = calculateSumFromListOFDict(response)
 

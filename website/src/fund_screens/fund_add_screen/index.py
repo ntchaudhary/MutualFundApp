@@ -2,6 +2,8 @@ from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
+from decimal import Decimal
+from boto3.dynamodb.conditions import Key
 import json
 
 from utilities.auth import auth_wrapper
@@ -10,6 +12,8 @@ from database.dbSetupAndConnection import Connection
 
 fundAdd = APIRouter()
 templates = Jinja2Templates(directory="website/UI/fund_UI")
+
+_DBObj = Connection()
 
 with open('static/mutualFundApp/fundList.json', 'rb') as data:
         jsonData11 = json.load(data)
@@ -57,19 +61,21 @@ def get(request: Request, user_details = Depends(auth_wrapper)):
     )
 
 @fundAdd.post('/add-fund', response_class=HTMLResponse)
-def buy_post(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
+def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
 
-    with open('static/mutualFundApp/Data.json', 'rb') as data:
-        jsonData = json.load(data)
+    table_name = 'account_and_user_profile'
+    table = _DBObj.dynamodb.Table(table_name)
+    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
+    jsonData = jsonData.get('Items')
 
-    if form_data.key not in jsonData.keys():
-        jsonData[form_data.key] = [jsonData11.get(form_data.key), 0.0, ]
-
-        with open('static/mutualFundApp/Data.json', 'w') as newData:
-            json.dump(jsonData, newData)
+    if form_data.key not in jsonData[0].get('fund_owned'):
+        jsonData[0]['fund_owned'].append(Decimal(form_data.key))
 
         try:
-            Connection().createFundTable(form_data.key)
+            _DBObj.insertDynamodbRow(
+                tableName=table_name,
+                insertData=jsonData
+            )
             message = "ADDED SUCCESSFULLY"
             status = 200
         except Exception as e:
