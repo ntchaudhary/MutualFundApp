@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Request, Depends
-from mftool import Mftool
 from decimal import Decimal
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
@@ -9,16 +8,14 @@ from utilities.auth import auth_wrapper
 from database.dbSetupAndConnection import Connection
 
 import pandas as pd
-import json, pendulum
+import asyncio, pendulum
 
 from utilities.utils import calculateSumFromListOFDict, convertResponse
 
 home = APIRouter()
 templates = Jinja2Templates(directory="website/UI") 
 
-_MF = Mftool()
-
-def deposit_details(user_details) -> dict:
+async def deposit_details(user_details) -> dict:
     """Return list of all the investment made in fixed and Recurring desposits and the amount they have made till today"""
     _DB_OBJ = Connection()
     table = _DB_OBJ.dynamodb.Table('deposits')
@@ -27,7 +24,9 @@ def deposit_details(user_details) -> dict:
     existsCheck = f''' select ID, NAME, TYPE, PRINCIPLE, RATE, FREQ, START_DATE, MATURITY_DATE from DEPOSIT '''
 
     try:
+        await asyncio.sleep(0.000001)
         values = table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) )
+        await asyncio.sleep(0.000001)
 
         if values['Items']:
             for value in values['Items']:
@@ -118,7 +117,7 @@ def deposit_details(user_details) -> dict:
 
     return({"status" : status_code, "body": response })
 
-def mutual_fund_fund_details(user_details) -> dict:
+async def mutual_fund_fund_details(user_details) -> dict:
     """Return current value of all the invested funds along with gain and loss on per fund basis"""
     _DB_OBJ = Connection()
     response = list()
@@ -126,17 +125,29 @@ def mutual_fund_fund_details(user_details) -> dict:
     table_name = 'account_and_user_profile'
     table = _DB_OBJ.dynamodb.Table(table_name)
     table2 = _DB_OBJ.dynamodb.Table('fund_details')
+    table3 = _DB_OBJ.dynamodb.Table('fund_transactions_details')
 
+    await asyncio.sleep(0.000001)
     jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
+    await asyncio.sleep(0.000001)
     jsonData = jsonData.get('Items')[0]
     SCHEME_CODE = jsonData.get('fund_owned') 
 
     try:
         for schemeCode in SCHEME_CODE:
-            strObj = f'''Select * from FUND_{schemeCode} WHERE TAX_HARVESTED = 'NO';'''
-            dataframe = pd.read_sql_query(strObj, _DB_OBJ.conn)
 
+            await asyncio.sleep(0.000001)
+            db_data_all = table3.query(KeyConditionExpression = Key('fund_id').eq(f"{schemeCode}") )['Items']
             currentMarketPrice = table2.query(KeyConditionExpression = Key('fund_id').eq(f"{schemeCode}") )['Items'][0]
+            db_data = [x for x in db_data_all if str(x["account_id"])==str(user_details["account_id"]) and str(x["profile"])==str(user_details["profile"])]
+            if not db_data:
+                db_data.append({'AMOUNT_INVESTED': Decimal('0.0'),
+                'NUMBER_OF_UNITS': Decimal('0.0'),
+                'UNITS_DATE': '31-01-2022'})
+            dataframe = pd.DataFrame(db_data)
+            
+            await asyncio.sleep(0.000001)
+            
             currentMarketPrice['scheme_code'] = currentMarketPrice['fund_id']
             del currentMarketPrice['fund_id']
 
@@ -146,7 +157,7 @@ def mutual_fund_fund_details(user_details) -> dict:
             # currentMarketPrice = _MF.calculate_balance_units_value( code=schemeCode, balance_units=dataframe.NUMBER_OF_UNITS.sum() )
             currentMarketPrice['gainLoss'] = Decimal( currentMarketPrice['balance_units_value'] ) - dataframe.AMOUNT_INVESTED.sum()
 
-            currentMarketPrice['invested'] = dataframe.AMOUNT_INVESTED.sum()
+            currentMarketPrice['invested'] = round(dataframe.AMOUNT_INVESTED.sum())
 
             dataframe['UNITS_DATE'] = pd.to_datetime( dataframe['UNITS_DATE'], infer_datetime_format=True, dayfirst=True )
             data1 = dataframe.copy(deep=True)
@@ -181,7 +192,7 @@ def mutual_fund_fund_details(user_details) -> dict:
 
 
 @home.get('/home', response_class=HTMLResponse)
-def index(request: Request, user_details = Depends(auth_wrapper)):
+async def index(request: Request, user_details = Depends(auth_wrapper)):
 
     listOfInstruments = ['Mutual Funds', 'Deposits', 'Provident Fund', 'Gold', 'Bank Balance']
     deposit = 0
@@ -189,9 +200,14 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
     excel_data_df = pd.read_excel('database/PF_BOOK.xlsx', sheet_name='total')
     pf_amount = excel_data_df.at[4,'Values']
 
-    response_fund = mutual_fund_fund_details(user_details)         # requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
+    # response_fund = mutual_fund_fund_details(user_details)         # requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
 
-    response_deposit = deposit_details(user_details)               # requests.get("http://127.0.0.1:8000/deposit/details")
+    # response_deposit = deposit_details(user_details)               # requests.get("http://127.0.0.1:8000/deposit/details")
+
+    data = await asyncio.gather(mutual_fund_fund_details(user_details), deposit_details(user_details))
+
+    response_fund = data[0]
+    response_deposit = data[1]
 
     sumOfFund = calculateSumFromListOFDict(response_fund)
 
@@ -201,7 +217,7 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
 
     fund = int(sumOfFund("balance_units_value"))
 
-    bank_balance = 150000
+    bank_balance = 0
     gold_amount = 0
      
     worth = fund+deposit+pf_amount+gold_amount+bank_balance

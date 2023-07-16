@@ -29,7 +29,7 @@ class Connection:
         table = self.dynamodb.Table(tableName)
         for insert_json in insertData:
             if convert:
-                insert_json = json.loads(json.dumps(insert_json), parse_float=Decimal)
+                insert_json = json.loads(json.dumps(insert_json), parse_float=Decimal, parse_int=Decimal)
             response = table.put_item(Item=insert_json)
 
     def updateDynamodbRow(self,tableName, key, update_expression, expression_attribute_values, expression_attribute_name):

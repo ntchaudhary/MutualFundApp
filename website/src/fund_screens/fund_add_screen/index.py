@@ -63,6 +63,10 @@ def get(request: Request, user_details = Depends(auth_wrapper)):
 @fundAdd.post('/add-fund', response_class=HTMLResponse)
 def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
 
+    from mftool import Mftool
+
+    _MF = Mftool()
+
     table_name = 'account_and_user_profile'
     table = _DBObj.dynamodb.Table(table_name)
     jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
@@ -76,6 +80,15 @@ def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_f
                 tableName=table_name,
                 insertData=jsonData
             )
+
+            x = _MF.get_scheme_quote(form_data.key)
+            x['fund_id'] = x['scheme_code']
+            del x['scheme_code']
+            x = json.loads(json.dumps(x))
+
+            table2 = _DBObj.dynamodb.Table('fund_details')
+            table2.put_item(Item=x)
+
             message = "ADDED SUCCESSFULLY"
             status = 200
         except Exception as e:
