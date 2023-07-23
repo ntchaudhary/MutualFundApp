@@ -184,11 +184,19 @@ async def mutual_fund_fund_details(user_details) -> dict:
         }
     return response
 
-# def calculateGainLossOnUnits(schemeCode, units, investedAmount) -> Decimal:
-#     """calculate the return on the units of a single fund"""
-#     currentMarketPrice = _MF.calculate_balance_units_value(code=schemeCode, balance_units=units)
-#     gainLoss = Decimal( currentMarketPrice['balance_units_value'] ) - investedAmount
-#     return gainLoss
+async def get_bank_balance(user_details):
+    """Return the bank balance for that account and profile"""
+    _DB_OBJ = Connection()
+
+    table_name = 'account_and_user_profile'
+    table = _DB_OBJ.dynamodb.Table(table_name)
+
+    await asyncio.sleep(0.000001)
+    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
+    await asyncio.sleep(0.000001)
+    jsonData = jsonData.get('Items')[0]
+    bank_balance = jsonData.get('bank_balance')
+    return float(bank_balance)
 
 
 @home.get('/home', response_class=HTMLResponse)
@@ -204,10 +212,13 @@ async def index(request: Request, user_details = Depends(auth_wrapper)):
 
     # response_deposit = deposit_details(user_details)               # requests.get("http://127.0.0.1:8000/deposit/details")
 
-    data = await asyncio.gather(mutual_fund_fund_details(user_details), deposit_details(user_details))
+    data = await asyncio.gather(mutual_fund_fund_details(user_details), deposit_details(user_details), get_bank_balance(user_details))
 
     response_fund = data[0]
     response_deposit = data[1]
+    bank_balance = data[2]
+
+    gold_amount = 0
 
     sumOfFund = calculateSumFromListOFDict(response_fund)
 
@@ -216,9 +227,6 @@ async def index(request: Request, user_details = Depends(auth_wrapper)):
         deposit = int( (sumOfDeposit("principle") + sumOfDeposit("interest_earned")) )
 
     fund = int(sumOfFund("balance_units_value"))
-
-    bank_balance = 0
-    gold_amount = 0
      
     worth = fund+deposit+pf_amount+gold_amount+bank_balance
     body = list()
