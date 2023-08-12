@@ -11,7 +11,7 @@ from database.dbSetupAndConnection import Connection
 
 
 fundAdd = APIRouter()
-templates = Jinja2Templates(directory="website/UI/fund_UI")
+templates = Jinja2Templates(directory="website/UI")
 
 _DBObj = Connection()
 
@@ -52,7 +52,7 @@ def get(request: Request, user_details = Depends(auth_wrapper)):
 
     
     return templates.TemplateResponse(
-        "fund_add.html", 
+        "/fund_UI/fund_add.html", 
         {
             "request": request,
             "profile":user_details['profile'],
@@ -100,7 +100,7 @@ def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_f
         message = 'FUND ALREADY EXISTS'
         status = 400
     return templates.TemplateResponse(
-        "fund_add.html", 
+        "/fund_UI/fund_add.html", 
         {
             "request": request,
             "profile":user_details['profile'],

@@ -13,16 +13,16 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 
-
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-
   <style>
     html,
     body {
       max-width: 100%;
       overflow-x: hidden;
+    }
+    .dropdown-menu[data-bs-popper] {
+        top: 100%;
+        left: auto;
+        margin-top: .125rem;
     }
   </style>
 
@@ -30,56 +30,43 @@
   <link href="cover.css" rel="stylesheet">
 </head>
 
-<body class="d-flex text-white bg-success">
+<body class="text-white bg-success">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <div class="cover-container d-flex w-100 h-100 mx-auto flex-column">
-    <div class="row row-cols-1">
-      <div class="col bg-dark">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-black">
-          <div class="container">
-            <h3 class="navbar-brand mb-0">Investment Tracker</h3>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="/website/home">Home</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">Contact</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </nav>
-      </div>
+  <div class="cover-container mx-auto ">
+    <div class="row">
+      {% include "/include/navbar.html" %}
+    </div>
+
       {%if show %}
       {%if body.status != 200%}
-      <div class="col">
-        <div class="alert alert-danger alert-dismissible fade show">
-          <button type="button" class="close" data-dismiss="alert">&times;</button>
-          <strong>ERROR!</strong> {{body.message}} error occurred while updating the fund transaction. Please try again after sometime.
+      <div class="row">
+        <div class="col">
+          <div class="alert alert-danger alert-dismissible fade show">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            <strong>ERROR!</strong> {{body.message}} error occurred while updating the fund transaction. Please try again after sometime.
+          </div>
         </div>
       </div>
       {%endif%}
       {%if body.status == 200%}
-      <div class="col">
-        <div class="alert alert-success">
-          <a class="close" aria-current="page" href="/website/fund-list">Go back</a>
-          <strong>{{body.message}}!</strong>
+      <div class="row">
+        <div class="col">
+          <div class="alert alert-success">
+            <a class="close" aria-current="page" href="/website/fund-list">Go back</a>
+            <strong>{{body.message}}!</strong>
+          </div>
         </div>
       </div>
       {%endif%}
       {%endif%}
-      <div class="col text-black bg-success bg-gradient">
-        <br><br>
+
+      <div class="row text-black justify-content-center align-items-center">
+        <div class="col-sm-8 col-md-6">
+        <br>
         <form method="POST">
+          <div class="mb-3">
           <fieldset class="form-group">
-            <div class="row">
-              <legend class="text-center col-form-label col-sm-2 pt-0"><strong>Select type of Transaction</strong></legend>
-              <div class="col">
+              <legend class="mb-2"><strong>Select type of Transaction</strong></legend>
                 <div class="form-check">
                   <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="buy" checked>
                   <label class="form-check-label" for="gridRadios1">
@@ -92,42 +79,32 @@
                     Selling Units
                   </label>
                 </div>
-              </div>
-            </div>
           </fieldset>
+        </div>
 
-          <div class="form-group row text-center">
-            <label for="installment" class="col-sm-2 col-form-label"><strong>Amount Invested</strong><br>required only if buying new units</label>
-            <div class="col-sm-10">
-              <input type="text" name="installment" class="form-control" id="installment" value="0">
-            </div>
-          </div>
-          <div class="form-group row text-center">
-            <label for="units" class="col-sm-2 col-form-label"><strong>Units Sold</strong><br>required only if selling units</label>
-            <div class="col-sm-10">
-              <input type="text" name="units" class="form-control" id="units" value="0">
-            </div>
+          <div class="mb-3">
+            <label for="installment" class="form-label"><strong>Amount Invested</strong> (required only if buying new units)</label>
+            <input type="text" name="installment" class="form-control" id="installment" value="0" placeholder="0.0" >
           </div>
 
-          <div class="form-group row text-center">
-            <label for="purchaseDate" class="col-sm-2 col-form-label"><strong>Purchase Date</strong></label>
-            <div class="col-sm-10">
-              <input type="date" class="form-control" name="purchaseDate" id="purchaseDate">
-            </div>
-          </div><br><br>
+          <div class="mb-3">
+            <label for="units" class="form-label"><strong>Units Sold</strong> (required only if selling units)</label>
+            <input type="text" name="units" class="form-control" id="units" placeholder="0.0" value="0">
+          </div>
 
-          <div class="form-group row text-center">
-            <div class="col">
-              <button type="submit" class="btn btn-primary" value="Submit">Submit</button>
-            </div>
-            <div class="col">
-              <button type="reset" class="btn btn-primary" value="reset">Reset</button>
-            </div>
+          <div class="mb-3">
+            <label for="purchaseDate" class="form-label"><strong>Purchase Date</strong></label>
+            <input type="date" class="form-control" name="purchaseDate" id="purchaseDate" placeholder="Purchase/Sell Date">
+          </div>
+
+          <div class="mb-3 text-center">
+            <button type="submit" class="btn btn-primary" value="Submit">Submit</button>
+            <button type="reset" class="btn btn-primary" value="reset">Reset</button>
           </div>
         </form>
+        </div>
       </div>
     </div>
-  </div>
 </body>
 
 </html>

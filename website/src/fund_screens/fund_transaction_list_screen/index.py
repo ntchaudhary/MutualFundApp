@@ -10,7 +10,7 @@ from utilities.auth import auth_wrapper
 from pprint import pprint
 
 fundTransactionList = APIRouter()
-templates = Jinja2Templates(directory="website/UI/fund_UI")
+templates = Jinja2Templates(directory="website/UI")
 
 
 def _fund_transactions_list(schemeCode, user_details) -> dict:
@@ -47,7 +47,7 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
     response = _fund_transactions_list(request.path_params.get('schemeCode'), user_details) # requests.get(api_url)
 
     return templates.TemplateResponse(
-        "mf_transaction_details.html", 
+        "/fund_UI/mf_transaction_details.html", 
         {
             "request": request,
             "profile":user_details['profile'], 

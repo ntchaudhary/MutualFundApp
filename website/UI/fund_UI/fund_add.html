@@ -30,14 +30,6 @@
       min-height: 100%;
     }
     
-    .navbar {
-      background-color: #000000;
-    }
-    
-    .nav-link {
-      color: #fff;
-    }
-    
     .bg-success {
       background-color: #28a745;
     }
@@ -55,35 +47,7 @@
 <body class="d-flex text-white bg-success">
   <div class="cover-container d-flex w-100 h-100 mx-auto flex-column">
     <div class="row">
-      <div class="col">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-black">
-          <div class="container">
-            <h3 class="navbar-brand mb-0">Investment Tracker</h3>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="/website/home">Home</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">Contact</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" id="dropdownMenuButton1" data-bs-toggle="dropdown" >{{profile}}</a>
-                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" data-bs-popper="static" >
-                    <li><a class="dropdown-item" href="/sign-out">Sign Out</a></li>
-                    <!-- <li><a class="dropdown-item" href="#">Another action</a></li> -->
-                    <!-- <li><a class="dropdown-item" href="#">Something else here</a></li> -->
-                  </ul>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </nav>
-      </div>
+      {% include "/include/navbar.html" %}
     </div>
     <div class="row">
       <div class="col text-black bg-success bg-gradient">

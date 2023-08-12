@@ -11,7 +11,7 @@ from utilities.utils import MyObject
 from utilities.auth import auth_wrapper
 
 depositAdd = APIRouter()
-templates = Jinja2Templates(directory="website/UI/deposit_UI")
+templates = Jinja2Templates(directory="website/UI")
 
 
 class DepositBody(BaseModel):
@@ -100,9 +100,10 @@ def _add(body, user_details):
 def get_index(request: Request, user_details = Depends(auth_wrapper)):
 
     return templates.TemplateResponse(
-        "deposit_add.html", 
+        "/deposit_UI/deposit_add.html", 
         {
-            "request": request,
+            "request": request, 
+            "profile":user_details['profile'],
             "show": False
         }
     )
@@ -134,9 +135,10 @@ def post_index(request: Request, form_data: DepositBody = Depends(DepositBody.as
     response = _add(MyObject(**body), user_details)
 
     return templates.TemplateResponse(
-            "deposit_add.html", 
+            "/deposit_UI/deposit_add.html", 
             {
-                "request": request,
+                "request": request, 
+                "profile":user_details['profile'],
                 "show": True,
                 "body":response
             }

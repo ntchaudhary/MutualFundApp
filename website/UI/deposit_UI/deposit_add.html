@@ -18,36 +18,21 @@
       max-width: 100%;
       overflow-x: hidden;
     }
+    .dropdown-menu[data-bs-popper] {
+        top: 100%;
+        left: auto;
+        margin-top: .125rem;
+    }
   </style>
 
   <!-- Custom styles for this template -->
   <link href="cover.css" rel="stylesheet">
 </head>
 
-<body class="d-flex text-white bg-success">
-  <div class="cover-container d-flex w-100 h-100 mx-auto flex-column">
+<body class="text-white bg-success">
+  <div class="cover-container mx-auto">
     <div class="row">
-      <div class="col bg-black">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-black">
-          <div class="container">
-            <h3 class="navbar-brand mb-0">Investment Tracker</h3>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-              aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link active" aria-current="page" href="/website/home">Home</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">Contact</a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </nav>
-      </div>
+      {% include "/include/navbar.html" %}
     </div>
 
     {% if show %}
@@ -73,8 +58,9 @@
     {% endif %}
     {% endif %}
 
-    <div class="row justify-content-center align-items-center">
+    <div class="row text-black justify-content-center align-items-center">
       <div class="col-sm-8 col-md-6">
+        <br>
         <form method="POST">
           <div class="mb-3">
             <label for="name" class="form-label"><strong>Reason to invest</strong></label>

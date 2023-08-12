@@ -14,7 +14,7 @@ from database.dbSetupAndConnection import Connection
 
 
 fundUpdate = APIRouter()
-templates = Jinja2Templates(directory="website/UI/fund_UI")
+templates = Jinja2Templates(directory="website/UI")
 STAMP_DUTY_PERCENT = 0.005
 
 
@@ -192,9 +192,10 @@ def _sell(schemeCode, body):
 async def buy_get(schemeCode: str, request: Request, user_details = Depends(auth_wrapper)):
 
     return templates.TemplateResponse(
-        "fund_update.html", 
+        "/fund_UI/fund_update.html", 
         {
             "request": request,
+            "profile":user_details['profile'],
             "show": False
         }
     )
@@ -225,9 +226,10 @@ async def buy_post(request: Request, form_data: DepositBody = Depends(DepositBod
         response = _sell(request.path_params.get('schemeCode'), body) # requests.put(f"http://127.0.0.1:8000/mutual-fund/fund-transactions/{request.path_params.get('schemeCode')}/sell", json=body)
 
     return templates.TemplateResponse(
-            "fund_update.html", 
+            "/fund_UI/fund_update.html", 
             {
                 "request": request,
+                "profile":user_details['profile'],
                 "show": True,
                 "body":response
             }

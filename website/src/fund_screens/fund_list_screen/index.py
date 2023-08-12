@@ -9,7 +9,7 @@ from utilities.auth import auth_wrapper
 import asyncio
 
 fundDetails = APIRouter()
-templates = Jinja2Templates(directory="website/UI/fund_UI")
+templates = Jinja2Templates(directory="website/UI")
 
 
 @fundDetails.get('/fund-list', response_class=HTMLResponse)
@@ -20,7 +20,7 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
     calculateSum = calculateSumFromListOFDict(response)
 
     return templates.TemplateResponse(
-        "mf_list.html", 
+        "/fund_UI/mf_list.html", 
         {
             "request": request, 
             "profile":user_details['profile'],

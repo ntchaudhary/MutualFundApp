@@ -9,7 +9,7 @@ from utilities.auth import auth_wrapper
 import asyncio
 
 depositList = APIRouter()
-templates = Jinja2Templates(directory="website/UI/deposit_UI")
+templates = Jinja2Templates(directory="website/UI")
 
 
 @depositList.get('/deposit-list', response_class=HTMLResponse)
@@ -23,7 +23,7 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
         numberOfMatured = sum([ 1 for x in response.get('body') if x['isMatured']=='Yes' ])
 
         return templates.TemplateResponse(
-            "deposit_list.html", 
+            "/deposit_UI/deposit_list.html", 
             {
                 "request": request, 
                 "profile":user_details['profile'],
@@ -36,7 +36,7 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
         )
     else:
         return templates.TemplateResponse(
-            "deposit_list.html", 
+            "/deposit_UI/deposit_list.html", 
             {
                 "request": request, 
                 "profile":user_details['profile'],
