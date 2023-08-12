@@ -49,7 +49,8 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
     return templates.TemplateResponse(
         "mf_transaction_details.html", 
         {
-            "request": request, 
+            "request": request,
+            "profile":user_details['profile'], 
             "body":response
         }
     )

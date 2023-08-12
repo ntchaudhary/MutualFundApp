@@ -23,6 +23,7 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
         "mf_list.html", 
         {
             "request": request, 
+            "profile":user_details['profile'],
             "body":response, 
             "count": len(response),
             "invested": round(calculateSum("invested"),2),

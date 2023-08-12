@@ -29,6 +29,11 @@
       max-width: 100%;
       overflow-x: hidden;
     }
+    .dropdown-menu[data-bs-popper] {
+        top: 100%;
+        left: auto;
+        margin-top: .125rem;
+    }
   </style>
   <!-- Custom styles for this template -->
   <link href="cover.css" rel="stylesheet">
@@ -52,6 +57,14 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="#">Contact</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="dropdownMenuButton1" data-bs-toggle="dropdown" >{{profile}}</a>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" data-bs-popper="static" >
+                    <li><a class="dropdown-item" href="/sign-out">Sign Out</a></li>
+                    <!-- <li><a class="dropdown-item" href="#">Another action</a></li> -->
+                    <!-- <li><a class="dropdown-item" href="#">Something else here</a></li> -->
+                  </ul>
                 </li>
               </ul>
             </div>

@@ -280,6 +280,7 @@ async def index(request: Request, user_details = Depends(auth_wrapper)):
         {
             "request": request,
             "worth":worth,
+            "profile":user_details['profile'],
             "listOfInstruments" : body
         }
     )

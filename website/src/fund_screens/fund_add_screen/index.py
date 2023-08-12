@@ -55,6 +55,7 @@ def get(request: Request, user_details = Depends(auth_wrapper)):
         "fund_add.html", 
         {
             "request": request,
+            "profile":user_details['profile'],
             "body": tmp,
             "show": False
         }
@@ -102,6 +103,7 @@ def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_f
         "fund_add.html", 
         {
             "request": request,
+            "profile":user_details['profile'],
             "body": tmp,
             "show": True,
             "message": message,

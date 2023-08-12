@@ -26,6 +26,7 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
             "deposit_list.html", 
             {
                 "request": request, 
+                "profile":user_details['profile'],
                 "body":response.get('body'), 
                 "count": len(response.get('body')),
                 "numberOfMatured":numberOfMatured,
@@ -38,6 +39,7 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
             "deposit_list.html", 
             {
                 "request": request, 
+                "profile":user_details['profile'],
                 "body":response
             }
         )
