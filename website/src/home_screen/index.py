@@ -14,10 +14,11 @@ from utilities.utils import calculateSumFromListOFDict, convertResponse
 
 home = APIRouter()
 templates = Jinja2Templates(directory="website/UI") 
+_DB_OBJ = Connection()
 
 async def deposit_details(user_details) -> dict:
     """Return list of all the investment made in fixed and Recurring desposits and the amount they have made till today"""
-    _DB_OBJ = Connection()
+    # _DB_OBJ = Connection()
     table = _DB_OBJ.dynamodb.Table('deposits')
     response = list()
     status_code = 404
@@ -119,7 +120,7 @@ async def deposit_details(user_details) -> dict:
 
 async def mutual_fund_fund_details(user_details) -> dict:
     """Return current value of all the invested funds along with gain and loss on per fund basis"""
-    _DB_OBJ = Connection()
+    # _DB_OBJ = Connection()
     response = list()
 
     table_name = 'account_and_user_profile'
@@ -186,7 +187,7 @@ async def mutual_fund_fund_details(user_details) -> dict:
 
 async def get_bank_balance(user_details):
     """Return the bank balance for that account and profile"""
-    _DB_OBJ = Connection()
+    # _DB_OBJ = Connection()
 
     table_name = 'account_and_user_profile'
     table = _DB_OBJ.dynamodb.Table(table_name)
@@ -198,6 +199,22 @@ async def get_bank_balance(user_details):
     bank_balance = jsonData.get('bank_balance')
     return float(bank_balance)
 
+async def get_pf_amount(user_details):
+    # _DB_OBJ = Connection()
+
+    table_name = 'account_and_user_profile'
+    table = _DB_OBJ.dynamodb.Table(table_name)
+
+    await asyncio.sleep(0.000001)
+    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
+    await asyncio.sleep(0.000001)
+    jsonData = jsonData.get('Items')[0]
+    flag = jsonData.get('pf_flag')
+    pf_amount = 0
+    if flag: 
+        excel_data_df = pd.read_excel('database/PF_BOOK.xlsx', sheet_name='total')
+        pf_amount = excel_data_df.at[4,'Values']
+    return float(pf_amount)
 
 @home.get('/home', response_class=HTMLResponse)
 async def index(request: Request, user_details = Depends(auth_wrapper)):
@@ -205,19 +222,17 @@ async def index(request: Request, user_details = Depends(auth_wrapper)):
     listOfInstruments = ['Mutual Funds', 'Deposits', 'Provident Fund', 'Gold', 'Bank Balance']
     deposit = 0
 
-    excel_data_df = pd.read_excel('database/PF_BOOK.xlsx', sheet_name='total')
-    pf_amount = excel_data_df.at[4,'Values']
-
     # response_fund = mutual_fund_fund_details(user_details)         # requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
 
     # response_deposit = deposit_details(user_details)               # requests.get("http://127.0.0.1:8000/deposit/details")
 
-    data = await asyncio.gather(mutual_fund_fund_details(user_details), deposit_details(user_details), get_bank_balance(user_details))
+    data = await asyncio.gather(mutual_fund_fund_details(user_details), deposit_details(user_details), get_bank_balance(user_details), get_pf_amount(user_details))
 
     response_fund = data[0]
     response_deposit = data[1]
     bank_balance = data[2]
-
+    pf_amount = data[3]
+    
     gold_amount = 0
 
     sumOfFund = calculateSumFromListOFDict(response_fund)

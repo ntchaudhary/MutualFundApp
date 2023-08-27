@@ -52,7 +52,8 @@ def signup_post(request: Request, auth_details: AuthDetails = Depends(AuthDetail
         "profile": str(auth_details.profile).lower(),
         "password_hash": hashed_password,
         "bank_balance": Decimal("0"),
-        "fund_owned" : []
+        "fund_owned" : [],
+        "pf_flag" : False
     }
 
     reponse = table.put_item(Item=x)
