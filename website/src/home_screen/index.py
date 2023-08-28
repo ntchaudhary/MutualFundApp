@@ -214,28 +214,35 @@ async def get_pf_amount(user_details):
     if flag: 
         excel_data_df = pd.read_excel('database/PF_BOOK.xlsx', sheet_name='total')
         pf_amount = excel_data_df.at[4,'Values']
-    return float(pf_amount)
+    return (flag, float(pf_amount))
 
 @home.get('/home', response_class=HTMLResponse)
 async def index(request: Request, user_details = Depends(auth_wrapper)):
 
-    listOfInstruments = ['Mutual Funds', 'Deposits', 'Provident Fund', 'Gold', 'Bank Balance']
     deposit = 0
+    fund = 0
+    bank_balance = 0
 
     # response_fund = mutual_fund_fund_details(user_details)         # requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
 
     # response_deposit = deposit_details(user_details)               # requests.get("http://127.0.0.1:8000/deposit/details")
 
-    data = await asyncio.gather(mutual_fund_fund_details(user_details), deposit_details(user_details), get_bank_balance(user_details), get_pf_amount(user_details))
+    data = await asyncio.gather(
+            mutual_fund_fund_details(user_details), 
+            deposit_details(user_details), 
+            get_bank_balance(user_details), 
+            get_pf_amount(user_details)
+        )
 
     response_fund = data[0]
     response_deposit = data[1]
     bank_balance = data[2]
-    pf_amount = data[3]
+    pf_amount = data[3][1] if data[3][0] else 0
     
     gold_amount = 0
+    silver_amount = 0
 
-    sumOfFund = calculateSumFromListOFDict(response_fund)
+    sumOfFund = calculateSumFromListOFDict(response_fund) 
 
     if str(response_deposit.get('status')) == '200':
         sumOfDeposit = calculateSumFromListOFDict(response_deposit.get('body'))
@@ -243,52 +250,16 @@ async def index(request: Request, user_details = Depends(auth_wrapper)):
 
     fund = int(sumOfFund("balance_units_value"))
      
-    worth = fund+deposit+pf_amount+gold_amount+bank_balance
-    body = list()
+    worth = fund+deposit+pf_amount+(gold_amount+silver_amount)+bank_balance
 
-    for x in listOfInstruments:
-        if x == 'Mutual Funds':
-            tmp_dct = {
-            "amount": fund,
-            "type": x,
-            "add_new_url" : "/website/add-fund",
-            "details_url" : "/website/fund-list",
-            "button_text" : "Add New"
-        }
-        if x == 'Deposits':
-            tmp_dct = {
-            "amount": deposit,
-            "type": x,
-            "add_new_url" : "/website/add-deposit",
-            "details_url" : "/website/deposit-list",
-            "button_text" : "Add New"
-        }
-        if x == 'Provident Fund':
-            tmp_dct = {
-            "amount": pf_amount,
-            "type": x,
-            "add_new_url" : "#",
-            "details_url" : "#",
-            "button_text" : ""
-        }
-        if x == 'Gold':
-            tmp_dct = {
-            "amount": gold_amount,
-            "type": x,
-            "add_new_url" : "#",
-            "details_url" : "#",
-            "button_text" : "Add New"
-        }
-        if x == 'Bank Balance':
-            tmp_dct = {
-            "amount": bank_balance,
-            "type": x,
-            "add_new_url" : "#",
-            "details_url" : "#",
-            "button_text" : "update"
-        }
+    from  .home_screen_static import active_data_mapping
+    active_data_mapping['Mutual Funds']['amount'] = fund
+    active_data_mapping['Deposits']['amount'] = deposit
+    active_data_mapping['Gold']['amount'] = gold_amount
+    active_data_mapping['Silver']['amount'] = silver_amount
+    active_data_mapping['Bank Balance']['amount'] = bank_balance
 
-        body.append(tmp_dct)
+    body = list(active_data_mapping.values())
 
     return templates.TemplateResponse(
         "home.html", 
