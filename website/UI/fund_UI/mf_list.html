@@ -66,7 +66,10 @@
           {% for x in body %}
           <div class="row mb-5">
             <div class="col-sm-1">
-              <a href="/website/{{x.scheme_code}}/update" class="btn btn-sm fw-bold bg-white">Update investments to this fund</a>
+              <a href="/website/{{x.scheme_code}}/update" class="btn btn-sm fw-bold bg-white">Update fund</a>
+            </div>
+            <div class="col-sm-1">
+              <a href="#" class="btn btn-sm fw-bold bg-white">Update Exit Period</a>
             </div>
             <div class="col-sm-2">
               <h5><a class="text-black" href="/website/fund-transactions-list/{{x.scheme_code}}">{{x.scheme_name}}</a></h5>
@@ -92,6 +95,10 @@
                 <div class="col">
                   <h5>Sell Units</h5>
                   <h4>{{x.harvest_unit}}</h4>
+                </div>
+                <div class="col">
+                  <h5>Exit Period</h5>
+                  <h4>{{x.exitTime}} year(s)</h4>
                 </div>
               </div>
             </div>

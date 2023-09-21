@@ -165,7 +165,8 @@ async def mutual_fund_fund_details(user_details) -> dict:
             data1 = data1.set_index('UNITS_DATE')
             # data1 = data.sort_index(ascending=False, inplace=False).tail(1).index.values[0] + np.timedelta64(370, 'D')
             data1 = data1.sort_index(inplace=False)
-            endDate = pendulum.today('local').subtract(years=1).date()
+            # endDate = pendulum.today('local').subtract(years=1).date()
+            endDate = pendulum.today('local').subtract(years=currentMarketPrice.get('exitTime', 9999)).date()
             data1 = data1.loc[:endDate]
 
             currentMarketPrice['harvest'] = round( float(data1.NUMBER_OF_UNITS.sum())*float(currentMarketPrice['nav']) ) - data1.AMOUNT_INVESTED.sum()
