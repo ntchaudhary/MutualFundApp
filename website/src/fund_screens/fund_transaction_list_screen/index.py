@@ -30,6 +30,7 @@ def _fund_transactions_list(schemeCode, user_details) -> dict:
         dbResponse = dataframe.sort_values(by=['UNITS_DATE'],ascending=False).to_dict('records')
 
         response={
+            "schemeCode": schemeCode,
             "schemeName": name[0].get('scheme_name'),
             "list": dbResponse
         }

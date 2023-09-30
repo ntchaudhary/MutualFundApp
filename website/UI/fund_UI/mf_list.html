@@ -65,14 +65,9 @@
         <div class="container py-5">
           {% for x in body %}
           <div class="row mb-5">
-            <div class="col-sm-1">
-              <a href="/website/{{x.scheme_code}}/update" class="btn btn-sm fw-bold bg-white">Update fund</a>
-            </div>
-            <div class="col-sm-1">
-              <a href="#" class="btn btn-sm fw-bold bg-white">Update Exit Period</a>
-            </div>
+            
             <div class="col-sm-2">
-              <h5><a class="text-black" href="/website/fund-transactions-list/{{x.scheme_code}}">{{x.scheme_name}}</a></h5>
+              <h5><a class="btn btn-sm fw-bold bg-white" href="/website/fund-transactions-list/{{x.scheme_code}}">{{x.scheme_name}}</a></h5>
             </div>
             <div class="col">
               <div class="row">

@@ -13,6 +13,7 @@ from utilities.auth import auth_wrapper
 depositAdd = APIRouter()
 templates = Jinja2Templates(directory="website/UI")
 
+_DB = Connection()
 
 class DepositBody(BaseModel):
     name: str
@@ -46,8 +47,6 @@ class DepositBody(BaseModel):
 
 def _add(body, user_details):
     """ Add the new FD or RD entry into database"""
-
-    _DB = Connection()
 
     table = _DB.dynamodb.Table('deposits')
 
@@ -148,7 +147,6 @@ def post_index(request: Request, form_data: DepositBody = Depends(DepositBody.as
 @depositAdd.delete('/delete/{fdID}')
 def _delete(fdID: str, user_details = Depends(auth_wrapper)):
     """Delete FD or RD entry from database"""
-    _DB = Connection()
 
     try:
         _DB.deleteDynamodbRow( 'deposits', {'account_id': Decimal(user_details['account_id']),'id': Decimal(fdID)} )

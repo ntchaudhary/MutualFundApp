@@ -118,76 +118,6 @@ def _buy(schemeCode, body):
 
     return (response)
 
-def _sell(schemeCode, body):
-    """Sell the Mutual Funds Units based on either on number of units or based on date purchased"""
-
-    _DB_OBJ = Connection()
-    
-    with open('static/mutualFundApp/Data.json', 'rb') as dataFile:
-        CONSTANTS = json.load(dataFile)
-    SCHEME_CODE = list(CONSTANTS.keys())
-
-    date = pendulum.date(year=body.date['year'], month=body.date['month'], day=body.date['day'])
-    
-    try:
-        if schemeCode not in SCHEME_CODE:
-            raise ValueError("SCHEME_CODE_INVALID")
-        
-        if body.units != 0:
-            units = body.units
-            strObj = f'''Select * from FUND_{schemeCode} WHERE TAX_HARVESTED = 'NO';'''
-            original_data = pd.read_sql_query(strObj, _DB_OBJ.conn)
-
-            original_data['UNITS_DATE'] = pd.to_datetime(original_data['UNITS_DATE'], infer_datetime_format=True, dayfirst=True)
-            data1 = original_data.copy(deep=True)
-            data1 = data1.set_index('UNITS_DATE')
-            data1 = data1.sort_index(inplace=False)
-
-            for x in data1.iterrows():
-                tmpUnits = x[1].NUMBER_OF_UNITS
-
-                if tmpUnits > 0:
-                    units = units - tmpUnits
-
-                if units > 0 and (tmpUnits - units) < 0:  # means all units of this row are consumed
-                    _DB_OBJ.updateRows(code=schemeCode, date=x[0].strftime('%d-%m-%Y'))  # but still some sold units remains
-
-                if units <= 0 and (tmpUnits - units) > 0:  # means all the sold units are consumed
-                    print(f'this row is changed 2 \n {x[1]}')  # but row has more units then the sold units
-                    print(f'remaining units are {units}\n')
-                    sqlstmt = f''' UPDATE FUND_{schemeCode} SET NUMBER_OF_UNITS = {tmpUnits - units} WHERE UNITS_DATE = ? '''
-                    cur = _DB_OBJ.conn.cursor()
-                    cur.execute(sqlstmt, (x[0].strftime('%d-%m-%Y'),))
-                    _DB_OBJ.conn.commit()
-                    break
-
-                if units == 0:  # means all the units sold are consumed by one row or multiple rows
-                    _DB_OBJ.updateRows(code=schemeCode, date=x[0].strftime('%d-%m-%Y'))
-                    break
-
-        else:
-            print('in elseeeeeeeeee')
-            if body.date['month'] in [11,12]:
-                dateStr = f"{body.date['day']}-{body.date['month']}-{body.date['year']}"
-            else:
-                dateStr = f"{body.date['day']}-0{body.date['month']}-{body.date['year']}"
-            print(schemeCode,dateStr)
-            _DB_OBJ.updateRows(code=schemeCode, date=dateStr)
-        
-        response = {
-            "status" : 200,
-            "message": "UNITS UPDATED SUCCESSFULLY"
-        }
-        
-    except Exception as e:
-        response = {
-            "status" : 500,
-            "message": e.args
-        }
-
-    return (response)
-
-
 @fundUpdate.get('/{schemeCode}/update', response_class=HTMLResponse)
 async def buy_get(schemeCode: str, request: Request, user_details = Depends(auth_wrapper)):
 
@@ -223,7 +153,7 @@ async def buy_post(request: Request, form_data: DepositBody = Depends(DepositBod
     if form_data.type == 'buy':
         response = _buy(request.path_params.get('schemeCode'), body) # requests.post(f"http://127.0.0.1:8000/mutual-fund/fund-transactions/{request.path_params.get('schemeCode')}/buy", json=body)
     elif form_data.type == 'sell':
-        response = _sell(request.path_params.get('schemeCode'), body) # requests.put(f"http://127.0.0.1:8000/mutual-fund/fund-transactions/{request.path_params.get('schemeCode')}/sell", json=body)
+        pass
 
     return templates.TemplateResponse(
             "/fund_UI/fund_update.html", 
@@ -234,3 +164,24 @@ async def buy_post(request: Request, form_data: DepositBody = Depends(DepositBod
                 "body":response
             }
         )
+
+@fundUpdate.delete('/{schemeCode}/sell/{transaction_id}')
+async def _delete(schemeCode: str, transaction_id: str, user_details = Depends(auth_wrapper)):
+    """Delete FD or RD entry from database"""
+
+    _DB = Connection()
+
+    try:
+        _DB.deleteDynamodbRow( 'fund_transactions_details', {'fund_id': schemeCode, 'transaction_id': Decimal(transaction_id)} )
+
+        response = {
+            "status" : 200,
+            "message": "UNITS SOLD SUCCESSFULLY"
+        }
+    except Exception as e:
+        response = {
+            "status": 500,
+            "message": str(e)
+        }
+
+    return(response)
