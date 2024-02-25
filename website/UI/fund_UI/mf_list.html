@@ -54,7 +54,7 @@
               <h2 id="totalReturn">{{totalReturn}}</h2>
             </div>
             <div class="col">
-              <h5>Total Harvesting Amt</h5>
+              <h5>Total Reinvesting Amt</h5>
               <h2 id="totalharvest">{{totalharvest}}</h2>
             </div>
           </div>
@@ -84,7 +84,11 @@
                   <h4 id="{{x.scheme_code}}gainLoss">{{x.gainLoss}}</h4>
                 </div>
                 <div class="col">
-                  <h5>Harvesting Amt</h5>
+                  <h5>Exit Period</h5>
+                  <h4>{{x.exitTime}} year(s)</h4>
+                </div>
+                <div class="col">
+                  <h5>Reinvesting Amt</h5>
                   <h4 id="{{x.scheme_code}}harvest">{{x.harvest}}</h4>
                 </div>
                 <div class="col">
@@ -92,8 +96,8 @@
                   <h4>{{x.harvest_unit}}</h4>
                 </div>
                 <div class="col">
-                  <h5>Exit Period</h5>
-                  <h4>{{x.exitTime}} year(s)</h4>
+                  <h5>Amt required for reinvesting</h5>
+                  <h4 id="{{x.scheme_code}}harvesting_amt_req">{{x.harvesting_amt_req}}</h4>
                 </div>
               </div>
             </div>
@@ -122,6 +126,7 @@
     separateNumber('{{x.balance_units_value}}', '{{x.scheme_code}}balance_units_value');
     separateNumber('{{x.gainLoss}}', '{{x.scheme_code}}gainLoss');
     separateNumber('{{x.harvest}}', '{{x.scheme_code}}harvest');
+    separateNumber('{{x.harvesting_amt_req}}', '{{x.scheme_code}}harvesting_amt_req');
     {% endfor %}
   </script>
 </body>

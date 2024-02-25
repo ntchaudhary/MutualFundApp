@@ -179,6 +179,8 @@ async def mutual_fund_fund_details(user_details) -> dict:
                                             
             currentMarketPrice['harvest_unit'] = round( data1.NUMBER_OF_UNITS.sum(), 2 ) if currentMarketPrice['harvest'] > 0 else 0
 
+            currentMarketPrice['harvesting_amt_req'] = round( float(data1.NUMBER_OF_UNITS.sum())*float(currentMarketPrice['nav']) )
+
             response.append(convertResponse(currentMarketPrice))
     except Exception as e:
         response = {
