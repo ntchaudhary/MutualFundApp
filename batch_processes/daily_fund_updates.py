@@ -30,7 +30,7 @@ def lambda_handler(event, context):
         currentEntry = table2.query(KeyConditionExpression = Key('fund_id').eq(f"{id}") )['Items'][0]
         x = _MF.get_scheme_quote(id)
         x['fund_id'] = x['scheme_code']
-        x['exitTime'] = int(currentEntry.get('exitTime', 9999))
+        x['exitTime'] = int(currentEntry.get('exitTime', 9))
         del x['scheme_code']
         x = json.loads(json.dumps(x))
         response = table2.put_item(Item=x)

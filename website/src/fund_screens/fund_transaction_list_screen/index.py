@@ -36,6 +36,7 @@ def _fund_transactions_list(schemeCode, user_details) -> dict:
         }
     except Exception as e:
         response = {
+            "schemeCode": schemeCode,
             "ERROR": e.args
         }
     return (response)

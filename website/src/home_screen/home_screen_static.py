@@ -12,6 +12,34 @@ _inactive_data_mapping = {
         "details_url": "#",
         "button_text": "coming soon"
     },
+    'ETF': {
+        "type": 'ETF',
+        "amount": 0,
+        "add_new_url": "#",
+        "details_url": "#",
+        "button_text": "coming soon"
+    },
+    'Stocks': {
+        "type": 'Stocks',
+        "amount": 0,
+        "add_new_url": "#",
+        "details_url": "#",
+        "button_text": "coming soon"
+    },
+    'Bonds': {
+        "type": 'Bonds',
+        "amount": 0,
+        "add_new_url": "#",
+        "details_url": "#",
+        "button_text": "coming soon"
+    },
+    'IPO': {
+        "type": 'IPO',
+        "amount": 0,
+        "add_new_url": "#",
+        "details_url": "#",
+        "button_text": "coming soon"
+    },
 }
 
 active_data_mapping = {
@@ -41,34 +69,6 @@ active_data_mapping = {
     },
     'Bank Balance': {
         "type": 'Bank Balance',
-        "add_new_url": "#",
-        "details_url": "#",
-        "button_text": "coming soon"
-    },
-    'ETF': {
-        "type": 'ETF',
-        "amount": 0,
-        "add_new_url": "#",
-        "details_url": "#",
-        "button_text": "coming soon"
-    },
-    'Stocks': {
-        "type": 'Stocks',
-        "amount": 0,
-        "add_new_url": "#",
-        "details_url": "#",
-        "button_text": "coming soon"
-    },
-    'Bonds': {
-        "type": 'Bonds',
-        "amount": 0,
-        "add_new_url": "#",
-        "details_url": "#",
-        "button_text": "coming soon"
-    },
-    'IPO': {
-        "type": 'IPO',
-        "amount": 0,
         "add_new_url": "#",
         "details_url": "#",
         "button_text": "coming soon"

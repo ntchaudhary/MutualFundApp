@@ -85,6 +85,7 @@ def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_f
             x = _MF.get_scheme_quote(form_data.key)
             x['fund_id'] = x['scheme_code']
             del x['scheme_code']
+            x['exitTime'] = 9
             x = json.loads(json.dumps(x))
 
             table2 = _DBObj.dynamodb.Table('fund_details')
