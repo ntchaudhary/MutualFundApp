@@ -67,8 +67,8 @@ active_data_mapping = {
         "details_url": "#",
         "button_text": "coming soon"
     },
-    'Bank Balance': {
-        "type": 'Bank Balance',
+    'Cash Flow': {
+        "type": 'Cash Flow',
         "add_new_url": "#",
         "details_url": "#",
         "button_text": "coming soon"
