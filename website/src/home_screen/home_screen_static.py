@@ -69,9 +69,9 @@ active_data_mapping = {
     },
     'Cash Flow': {
         "type": 'Cash Flow',
-        "add_new_url": "#",
+        "add_new_url": "/website/cashFlow/add",
         "details_url": "#",
-        "button_text": "coming soon"
+        "button_text": "Add New"
     },
     'NSC': {
         "type": 'National Saving Certificate',

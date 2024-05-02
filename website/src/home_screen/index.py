@@ -260,7 +260,7 @@ async def index(request: Request, user_details = Depends(auth_wrapper)):
     active_data_mapping['Deposits']['amount'] = deposit
     active_data_mapping['Gold']['amount'] = gold_amount
     active_data_mapping['Silver']['amount'] = silver_amount
-    active_data_mapping['Bank Balance']['amount'] = bank_balance
+    active_data_mapping['Cash Flow']['amount'] = bank_balance
 
     body = list(active_data_mapping.values())
 

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.88.1">
+
+    <title>Investment Tracker</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        html,
+        body {
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+
+        .dropdown-menu[data-bs-popper] {
+            top: 100%;
+            left: auto;
+            margin-top: .125rem;
+        }
+    </style>
+
+    <!-- Custom styles for this template -->
+    <link href="cover.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const cashflow = document.getElementById('cashflow');
+            const firstDropdown = document.getElementById('firstDropdown');
+            const secondDropdown = document.getElementById('secondDropdown');
+
+            const income_expense = {
+            {% for key, values in income_expense_cat.items() %}
+            "{{ key }}": {{values|tojson}},
+            {% endfor %}
+            }
+
+            const options = {
+            {% for key, values in options.items() %}
+            "{{ key }}": {{values|tojson}},
+            {% endfor %}
+        };
+
+        cashflow.addEventListener('change', function () {
+            firstDropdown.disabled = false;
+            firstDropdown.innerHTML = '';
+
+            const selectedOption1 = this.value;
+            console.log(selectedOption1)
+            console.log(income_expense[selectedOption1])
+
+            income_expense[selectedOption1].forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.textContent = option;
+                optionElement.value = option;
+                firstDropdown.appendChild(optionElement);
+            });
+        });
+
+        firstDropdown.addEventListener('change', function () {
+            secondDropdown.disabled = false;
+            secondDropdown.innerHTML = '';
+
+            const selectedOption = this.value;
+
+            options[selectedOption].forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.textContent = option;
+                optionElement.value = option;
+                secondDropdown.appendChild(optionElement);
+            });
+        });
+    });
+    </script>
+
+</head>
+
+
+
+<body class="text-white bg-success">
+    <div class="cover-container mx-auto mt-5 pt-5">
+        <div class="row">
+            {% include "/include/navbar.html" %}
+        </div>
+
+        {% if show %}
+        {% if body.status != 200 %}
+        <div class="row">
+            <div class="col">
+                <div class="alert alert-danger alert-dismissible fade show">
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <strong>ERROR!</strong> {{body.message}}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% if body.status == 200 %}
+        <div class="row">
+            <div class="col">
+                <div class="alert alert-success alert-dismissible fade show">
+                    <a class="close" aria-current="page" href="/website/home">Go back</a>
+                    <strong>Added Successfully!</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+
+        <div class="row text-black justify-content-center align-items-center">
+            <div class="col-sm-8 col-md-6">
+                <br>
+                <form method="POST">
+
+                    <div class="mb-3">
+                        <label for="cashflow" class="form-label"><strong>Select type of cash flow</strong></label>
+                        <select class="form-select" id="cashflow" name="typeRadios" aria-placeholder="Select">
+                            <option>Please select cash flow type</option>
+                            <option value="Expense">Expense</option>
+                            <option value="Income">Income</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="expenseDate" class="form-label"><strong>Start Date</strong></label>
+                        <input type="date" class="form-control" name="expense_date" id="expense_date"
+                            placeholder="transaction date" value="{{date}}">
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col">
+                            <label for="firstDropdown" class="form-label"><strong>Category</strong></label>
+                            <select class="form-select" id="firstDropdown" name="category" disabled>
+                                <option>Please select cash flow type first</option>
+                            </select>
+                        </div>
+                        <div class="col">
+                            <label for="secondDropdown" class="form-label"><strong>Sub Category</strong></label>
+                            <select class="form-select" id="secondDropdown" name="sub_category" disabled>
+                                <option>Please select category first</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col">
+                            <input type="text" class="form-control" name="other_category" id="other_category"
+                                placeholder="if other, then category">
+                        </div>
+                        <div class="col">
+                            <input type="text" class="form-control" name="other_subcategory" id="other_subcategory"
+                                placeholder="if other, then sub category">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="principle" class="form-label"><strong>Amount</strong></label>
+                        <input type="text" class="form-control" name="amount" id="amount" placeholder="Enter Amount">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rate" class="form-label"><strong>Note</strong></label>
+                        <input type="text" class="form-control" name="note" id="note"
+                            placeholder="short note to remember">
+                    </div>
+                    <div class="mb-3 text-center">
+                        <button type="submit" class="btn btn-primary" value="Submit">Submit</button>
+                        <button type="reset" class="btn btn-primary" value="reset">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
