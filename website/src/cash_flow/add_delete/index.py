@@ -66,8 +66,6 @@ def _add(body, user_details):
             Limit = 1
         )
 
-        print(response,str(expense_date.format('YYYY-MM-DD')))
-
         if response["Items"]:
             if str(expense_date.format('YYYYMMDD')) in str(response["Items"][0]["transaction_id"]):
                 id = response["Items"][0]["transaction_id"]+1
@@ -87,7 +85,7 @@ def _add(body, user_details):
             "amount":           Decimal(str(body.amount)),
             "income_expense":   body.income_expense
         }
-        print(insert_json)
+
         _DB.insertDynamodbRow('income_expenses',insertData=[insert_json,])
             
         response = {
@@ -172,9 +170,28 @@ def post_index(request: Request, form_data: Income_Expense_Body = Depends(Income
         }
     }
 
+    if  body['sub_category'] == 'no sub category' or body['sub_category'] is None :
+        body['sub_category'] = ''
+
     response = _add(MyObject(**body), user_details)
 
     income_expense_cat, options = get_unique_categories_and_subcategories()
+
+
+    # updating the bank balance when a transaction is done
+    table = _DB.dynamodb.Table('account_and_user_profile')
+    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
+    jsonData = jsonData.get('Items')
+
+    if form_data.income_expense == 'Expense':
+        jsonData[0]['bank_balance'] = Decimal(jsonData[0]['bank_balance']) - Decimal(form_data.amount)
+    if form_data.income_expense == 'Income':
+        jsonData[0]['bank_balance'] = Decimal(jsonData[0]['bank_balance']) + Decimal(form_data.amount)
+
+    _DB.insertDynamodbRow(
+        tableName='account_and_user_profile',
+        insertData=jsonData
+    )
 
     return templates.TemplateResponse(
         "/cash_flow_UI/add.html", 
@@ -188,7 +205,6 @@ def post_index(request: Request, form_data: Income_Expense_Body = Depends(Income
             "body":response
             }
         )
-
 
 @cashFlowAddDelete.delete('/delete/{transaction_id}')
 def _delete(transaction_id: str, user_details = Depends(auth_wrapper)):
