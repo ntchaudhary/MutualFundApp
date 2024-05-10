@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Summary</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        html,
+        body {
+          max-width: 100%;
+          overflow-x: hidden;
+        }
+        .dropdown-menu[data-bs-popper] {
+            top: 100%;
+            left: auto;
+            margin-top: .125rem;
+        }
+        .income-row {
+            background-color: lightgreen;
+        }
+        /* Color for rows with income_expense as Expense */
+        .expense-row {
+            background-color: #ffcccc; /* Lighter shade of red */
+        }
+    </style>
+</head>
+<body class="d-flex text-center text-black">
+    <div class="cover-container d-flex w-100 h-100 mx-auto flex-column pt-5">
+      <div class="row row-cols-1">
+<!-- nav bar -->
+            <div class="col bg-black">
+                <nav class="navbar navbar-expand-lg navbar-dark bg-black fixed-top">
+                <div class="container">
+                    <h2 class="text-white">Investment Tracker</h2>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                        <a class="nav-link active" href="/website/home">Home</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link" href="#">Contact</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link active" id="dropdownMenuButton1" data-bs-toggle="dropdown" >{{profile}}</a>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1" data-bs-popper="static" >
+                            <li><a class="dropdown-item" href="#">Create Profile</a></li>
+                            <li><a class="dropdown-item" href="/change-password">Change Password</a></li>
+                            <li><a class="dropdown-item" href="/sign-out">Sign Out</a></li>
+                        </ul>
+                        </li>
+                    </ul>
+                    </div>
+                </div>
+                </nav>
+            </div>
+  <!-- nav bar -->
+  <!-- <br> -->
+            <div class="col bg-white">
+                <div class="container py-5">
+                <div class="row">
+                    <div class="col">
+                        <h5>Month</h5>
+                    </div>
+                    <div class="col">
+                        <h5>Total Expense</h5>
+                    </div>
+                    <div class="col">
+                        <h5>Total Income</h5>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <div class="col">
+                <div id="summary-table" class="container py-5">
+
+                </div>
+
+            </div>
+            
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css"></script> -->
+    <script>
+        // Sample JSON data
+        const jsonData = [
+            {
+                "account_id": 4444333221,
+                "transaction_id": 202404270000,
+                "amount": 101.06,
+                "category": "Food",
+                "expense_date": "2024-04-27",
+                "income_expense": "Expense",
+                "note": "Zomato",
+                "profile": "tushar",
+                "sub_category": "Eating out"
+            },
+            {
+                "account_id": 4444333221,
+                "transaction_id": 202404260000,
+                "amount": 18200,
+                "category": "Farmland",
+                "expense_date": "2024-04-26",
+                "income_expense": "Expense",
+                "note": "Satendra yearly payment for farmland",
+                "profile": "tushar",
+                "sub_category": ""
+            },
+            {
+                "account_id": 4444333221,
+                "transaction_id": 202112310000,
+                "amount": 58534,
+                "bank_account": "",
+                "bank_name": "",
+                "category": "Salary",
+                "expense_date": "2024-03-21",
+                "income_expense": "Income",
+                "note": "for next month carry over",
+                "profile": "tushar",
+                "sub_category": ""
+            }
+            // Add more data as needed
+        ];
+
+        // Function to generate summary rows based on month of expense_date
+        function generateSummaryRows(data) {
+            const summaryTable = document.getElementById('summary-table');
+            const summaryMap = new Map();
+            console.log("line 137",summaryTable)
+
+            // Iterate over the data to calculate total expense and total income for each month
+            data.forEach(item => {
+                const month = item.expense_date.slice(0, 7); // Extracting the year and month
+                if (!summaryMap.has(month)) {
+                    summaryMap.set(month, {
+                        totalExpense: 0,
+                        totalIncome: 0,
+                        details: []
+                    });
+                }
+                if (item.income_expense === 'Expense') {
+                    summaryMap.get(month).totalExpense += item.amount;
+                } else if (item.income_expense === 'Income') {
+                    summaryMap.get(month).totalIncome += item.amount;
+                }
+                summaryMap.get(month).details.push(item);
+            });
+
+            // Generate summary rows
+            summaryMap.forEach((summaryData, month) => {
+                const summaryRow = document.createElement('div');
+                summaryRow.classList.add('row', 'collapse');
+                summaryRow.aria
+                summaryRow.innerHTML = `
+                    <div class="col">${month}</div>
+                    <div class="col">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalExpense.toFixed(2))}</div>
+                    <div class="col">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalIncome.toFixed(2))}</div>
+                `;
+                summaryTable.appendChild(summaryRow);
+
+                const detailsTable = document.createElement('table');
+                detailsTable.classList.add('table', 'collapse');
+                detailsTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Category</th>
+                            <th>Sub Category</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Note</th>
+                        </tr>
+                    </thead>
+                    <tbody class="details-row-${month}">
+                        <!-- Details rows will be dynamically generated here -->
+                    </tbody>
+                `;
+                summaryTable.appendChild(detailsTable);
+
+                // Generate details rows for each month
+                summaryData.details.forEach(item => {
+                    const detailsRow = document.createElement('tr');
+                    detailsRow.innerHTML = `
+                        <td>${item.expense_date}</td>
+                        <td>${item.category}</td>
+                        <td>${item.sub_category}</td>
+                        <td>${item.income_expense}</td>
+                        <td>₹ ${new Intl.NumberFormat('en-IN').format(item.amount.toFixed(2))}</td>
+                        <td>${item.note}</td>
+                    `;
+                    // Add classes based on income_expense value
+                    if (item.income_expense === 'Income') {
+                        detailsRow.classList.add('income-row');
+                    } else if (item.income_expense === 'Expense') {
+                        detailsRow.classList.add('expense-row');
+                    }
+                    detailsTable.querySelector(`.details-row-${month}`).appendChild(detailsRow);
+                });
+
+                // Add click event to toggle details rows
+                summaryRow.addEventListener('click', () => {
+                    detailsTable.classList.toggle('show');
+                });
+            });
+        }
+
+        // Call the function with sample data
+        generateSummaryRows(jsonData);
+    </script>
+
+</body>
+</html>
