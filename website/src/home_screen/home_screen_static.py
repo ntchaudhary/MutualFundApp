@@ -70,7 +70,7 @@ active_data_mapping = {
     'Cash Flow': {
         "type": 'Cash Flow',
         "add_new_url": "/website/cashFlow/add",
-        "details_url": "#",
+        "details_url": "/website/cashFlow/list",
         "button_text": "Add New"
     },
     'NSC': {

@@ -16,7 +16,7 @@ from .src.signin_signup_screen.sign_out import signOUT
 from .src.signin_signup_screen.change_password import changePassword
 
 from .src.cash_flow.add_delete.index import cashFlowAddDelete
-# from .src.cash_flow.list.index import
+from .src.cash_flow.list.index import cashFlowList
 # from .src.cash_flow.update.index import
 
 
@@ -40,3 +40,4 @@ website.include_router(depositList, prefix=_BASE_ENDPOINT)
 website.include_router(depositAdd, prefix=_BASE_ENDPOINT)
 
 website.include_router(cashFlowAddDelete, prefix="/website/cashFlow")
+website.include_router(cashFlowList, prefix="/website/cashFlow")
