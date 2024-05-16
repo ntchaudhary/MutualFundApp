@@ -99,7 +99,7 @@ def _add(body, user_details):
         }
     return response
 
-def get_unique_categories_and_subcategories():
+def get_unique_categories_and_subcategories(user_details):
   """Fetches unique categories and subcategories from a DynamoDB table.
 
   Args:
@@ -112,12 +112,19 @@ def get_unique_categories_and_subcategories():
   table = _DB.dynamodb.Table('income_expenses')
 
   # Scan the table using ProjectionExpression for efficiency
-  response = table.scan(ProjectionExpression="income_expense, category, sub_category")
+  response = table.scan(ProjectionExpression="account_id, profile, income_expense, category, sub_category")
   items = response.get('Items', [])
 
   categories = {}
-  income_expense_type = {}
+  income_expense_type = {"Expense":['None of the mentioned',],
+                         "Income":['None of the mentioned',]}
   for item in items:
+
+    if str(item["profile"])==str(user_details["profile"]) and str(item["account_id"])==str(user_details["account_id"]):
+        pass
+    else:
+        continue
+
     income_expense = item.get('income_expense')
     category = item.get('category')
     sub_category = item.get('sub_category')
@@ -138,7 +145,7 @@ def get_unique_categories_and_subcategories():
 @cashFlowAddDelete.get('/add', response_class=HTMLResponse)
 def get_index(request: Request, user_details = Depends(auth_wrapper)):
 
-    income_expense_cat, options = get_unique_categories_and_subcategories()
+    income_expense_cat, options = get_unique_categories_and_subcategories(user_details)
 
     return templates.TemplateResponse(
         "/cash_flow_UI/add.html", 
@@ -175,7 +182,7 @@ def post_index(request: Request, form_data: Income_Expense_Body = Depends(Income
 
     response = _add(MyObject(**body), user_details)
 
-    income_expense_cat, options = get_unique_categories_and_subcategories()
+    income_expense_cat, options = get_unique_categories_and_subcategories(user_details)
 
 
     # updating the bank balance when a transaction is done

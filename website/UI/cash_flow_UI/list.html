@@ -77,31 +77,80 @@
                 </div>
             </div>
 
-            <div class="col">
-                <div class="container py-5">
-                    <div class="row ">
-                        <div class="col">
-                            <h3>Month</h3>
-                        </div>
-                        <div class="col">
-                            <h3>Total Expense</h3>
-                        </div>
-                        <div class="col">
-                            <h3>Total Income</h3>
-                        </div>
-                    </div>
-                </div>
+            <div class="container bg-primary">
+                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link text-black active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true"><strong>Month Wise</strong></button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                      <button class="nav-link text-black" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false"><strong>Category Wise</strong></button>
+                    </li>
+                    <!-- <li class="nav-item" role="presentation">
+                      <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact" type="button" role="tab" aria-controls="contact" aria-selected="false">Contact</button>
+                    </li> -->
+                </ul>
             </div>
 
-            <div class="col">
-                <div id="summary-table" class="container">
-                    <div class="accordion" id="myAccordion">
-                        <!-- dynamic code  -->
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                    <div class="col">
+                        <div class="container py-5">
+                            <div class="row ">
+                                <div class="col">
+                                    <h3>Month</h3>
+                                </div>
+                                <div class="col">
+                                    <h3>Total Expense</h3>
+                                </div>
+                                <div class="col">
+                                    <h3>Total Income</h3>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
+        
+                    <div class="col">
+                        <div id="summary-table" class="container">
+                            <div class="accordion" id="myAccordionMonth">
+                                <!-- dynamic code  -->
+                            </div>
+        
+                        </div>
+        
+                    </div>
                 </div>
-
-            </div>
+                <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                    <div class="col">
+                        <div class="container py-5">
+                            <div class="row ">
+                                <div class="col">
+                                    <h3>Category</h3>
+                                </div>
+                                <div class="col">
+                                    <h3>Total Expense</h3>
+                                </div>
+                                <div class="col">
+                                    <h3>Total Income</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <div class="col">
+                        <div id="summary-table" class="container">
+                            <div class="accordion" id="myAccordionCategory">
+                                <!-- dynamic code  -->
+                            </div>
+        
+                        </div>
+        
+                    </div>
+                </div>
+                <!-- <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
+                  <h3>Contact Content</h3>
+                  <p>This is the content for the Contact tab.</p>
+                </div> -->
+              </div>
 
         </div>
     </div>
@@ -109,11 +158,11 @@
 
     <script>
         // Sample JSON data
-        const jsonData = {{body|tojson}};
+        const jsonData = {{ body| tojson}};
 
         // Function to generate summary rows based on month of expense_date
-        function generateSummaryRows(data) {
-            const summaryTable = document.getElementById('myAccordion');
+        function generateMonthWiseSummaryRows(data) {
+            const summaryTable = document.getElementById('myAccordionMonth');
             const summaryMap = new Map();
             var total_expense = 0
             var total_income = 0
@@ -129,17 +178,17 @@
                     });
                 }
                 if (item.income_expense === 'Expense') {
-                    total_expense += item.amount ;
+                    total_expense += item.amount;
                     summaryMap.get(month).totalExpense += item.amount;
                 } else if (item.income_expense === 'Income') {
-                    total_income+=item.amount ;
+                    total_income += item.amount;
                     summaryMap.get(month).totalIncome += item.amount;
                 }
                 summaryMap.get(month).details.push(item);
             });
 
-            document.getElementById('total_expense').innerHTML = '₹ '+ new Intl.NumberFormat('en-IN').format(total_expense.toFixed(2));
-            document.getElementById('total_income').innerHTML = '₹ '+ new Intl.NumberFormat('en-IN').format(total_income.toFixed(2));
+            document.getElementById('total_expense').innerHTML = '₹ ' + new Intl.NumberFormat('en-IN').format(total_expense.toFixed(2));
+            document.getElementById('total_income').innerHTML = '₹ ' + new Intl.NumberFormat('en-IN').format(total_income.toFixed(2));
 
             // Generate summary rows
             summaryMap.forEach((summaryData, month) => {
@@ -150,18 +199,18 @@
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${month}" aria-expanded="false" aria-controls="collapse${month}">
                             <div class="row w-100 h-100 mx-auto text-center">
                                 <div class="col">
-                                    <h4>${month}</h4>
+                                    <h6>${month.replace('_', ' ')}</h6>
                                 </div>
                                 <div class="col">
-                                    <h4 class="text-danger">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalExpense.toFixed(2))}</h4>
+                                    <h6 class="text-danger">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalExpense.toFixed(2))}</h6>
                                 </div>
                                 <div class="col">
-                                    <h4 class="text-success">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalIncome.toFixed(2))}</h4>
+                                    <h6 class="text-success">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalIncome.toFixed(2))}</h6>
                                 </div>
                             </div>
                         </button>
                     </h2>
-                    <div id="collapse${month}" class="accordion-collapse collapse" aria-labelledby="header${month}" data-bs-parent="#myAccordion">
+                    <div id="collapse${month}" class="accordion-collapse collapse" aria-labelledby="header${month}" data-bs-parent="#myAccordionMonth">
                         <div class="accordion-body">
                             <div class="table-responsive">
                                 <table class="table">
@@ -211,7 +260,101 @@
             });
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
+        // Function to generate summary rows based on category
+        function generateCategoryWiseSummaryRows(data) {
+            const summaryTable = document.getElementById('myAccordionCategory');
+            const summaryMap = new Map();
+
+            // Iterate over the data to calculate total expense and total income for each category
+            data.forEach(item => {
+                const category = item.category.replace(' ', '_'); // Extracting the category
+                if (!summaryMap.has(category)) {
+                    summaryMap.set(category, {
+                        totalExpense: 0,
+                        totalIncome: 0,
+                        details: []
+                    });
+                }
+                if (item.income_expense === 'Expense') {
+                    summaryMap.get(category).totalExpense += item.amount;
+                } else if (item.income_expense === 'Income') {
+                    summaryMap.get(category).totalIncome += item.amount;
+                }
+                summaryMap.get(category).details.push(item);
+            });
+
+            
+            // Generate summary rows
+            summaryMap.forEach((summaryData, category) => {
+                const summaryRow = document.createElement('div');
+                summaryRow.classList.add('accordion-item');
+                summaryRow.innerHTML = `
+                    <h2 class="accordion-header " id="header${category}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${category}" aria-expanded="false" aria-controls="collapse${category}">
+                            <div class="row w-100 h-100 mx-auto text-center">
+                                <div class="col">
+                                    <h6>${category.replace('_', ' ')}</h6>
+                                </div>
+                                <div class="col">
+                                    <h6 class="text-danger">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalExpense.toFixed(2))}</h6>
+                                </div>
+                                <div class="col">
+                                    <h6 class="text-success">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalIncome.toFixed(2))}</h6>
+                                </div>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapse${category}" class="accordion-collapse collapse" aria-labelledby="header${category}" data-bs-parent="#myAccordionCategory">
+                        <div class="accordion-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Category</th>
+                                            <th>Sub Category</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                            <th>Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="details-row-${category}">
+                                        <!-- Details rows will be dynamically generated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                summaryTable.appendChild(summaryRow);
+
+                // Generate details rows for each category
+                summaryData.details.forEach(item => {
+                    const detailsRow = document.createElement('tr');
+                    detailsRow.innerHTML = `
+                        <td>${item.expense_date}</td>
+                        <td>${item.category}</td>
+                        <td>${item.sub_category}</td>
+                        <td>${item.income_expense}</td>
+                        <td>₹ ${new Intl.NumberFormat('en-IN').format(item.amount.toFixed(2))}</td>
+                        <td>${item.note}</td>
+                    `;
+                    // Add classes based on income_expense value
+                    if (item.income_expense === 'Income') {
+                        // detailsRow.bgColor = '#d6ffd6';
+                        detailsRow.classList.add("table-success");
+                    } else if (item.income_expense === 'Expense') {
+                        // detailsRow.bgColor= "#b42d2d";
+                        detailsRow.classList.add("table-danger");
+                    }
+                    summaryRow.querySelector(`.details-row-${category}`).appendChild(detailsRow);
+                });
+
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
             // Get dropdown menu
             var dropdownMenu = document.getElementById('dropdownMenuButton');
 
@@ -219,38 +362,42 @@
             var dropdownItems = document.querySelectorAll('.dropdown-item');
 
             // Attach event listener for 'click' event on dropdown items
-            dropdownItems.forEach(function(item) {
-            item.addEventListener('click', function(event) {
-                // Get selected option
-                var selectedOption = event.target.textContent.trim();
+            dropdownItems.forEach(function (item) {
+                item.addEventListener('click', function (event) {
+                    // Get selected option
+                    var selectedOption = event.target.textContent.trim();
 
-                // Set the selected option as dropdown button text
-                dropdownMenu.textContent = selectedOption;
+                    // Set the selected option as dropdown button text
+                    dropdownMenu.textContent = selectedOption;
 
-                // Get reference to the div
-                var myAccordion = document.getElementById('myAccordion');
-                
-                // Clear its content
-                myAccordion.innerHTML = '';
+                    // Get reference to the div
+                    var myAccordionMonth = document.getElementById('myAccordionMonth');
+                    var myAccordionCategory = document.getElementById('myAccordionCategory');
 
-                if (selectedOption === 'All') {
-                    // Initialize an empty array to store the values
-                    var allValues = [];
+                    // Clear its content
+                    myAccordionMonth.innerHTML = '';
+                    myAccordionCategory.innerHTML = '';
 
-                    // Iterate over the keys of the JSON object
-                    for (var key in jsonData) {
-                    // Check if the key is a property of the object (not inherited)
-                        if (jsonData.hasOwnProperty(key)) {
-                            // Concatenate the array associated with the current key to the allValues array
-                            allValues = allValues.concat(jsonData[key]);
+                    if (selectedOption === 'All') {
+                        // Initialize an empty array to store the values
+                        var allValues = [];
+
+                        // Iterate over the keys of the JSON object
+                        for (var key in jsonData) {
+                            // Check if the key is a property of the object (not inherited)
+                            if (jsonData.hasOwnProperty(key)) {
+                                // Concatenate the array associated with the current key to the allValues array
+                                allValues = allValues.concat(jsonData[key]);
+                            }
                         }
+                        generateMonthWiseSummaryRows(allValues);
+                        generateCategoryWiseSummaryRows(allValues);
                     }
-                    generateSummaryRows(allValues);
-                }
-                else {
-                    generateSummaryRows(jsonData[selectedOption]);
-                }
-                
+                    else {
+                        generateMonthWiseSummaryRows(jsonData[selectedOption]);
+                        generateCategoryWiseSummaryRows(jsonData[selectedOption]);
+                    }
+
                 });
             });
         });
