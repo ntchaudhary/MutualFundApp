@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
@@ -16,8 +17,10 @@ templates = Jinja2Templates(directory="website/UI")
 _DB = Connection()
 
 class DepositBody(BaseModel):
-    name: str
+    note: Optional[str] = None
     type: str
+    account_number: str
+    bank: str
     principle: str
     rate: str
     compound_frequency: int
@@ -27,7 +30,9 @@ class DepositBody(BaseModel):
     @classmethod
     def as_form(
         cls,
-        name: str = Form(...),
+        account_number: str = Form(...),
+        bank: str = Form(...),
+        note: str = Form(""),
         principle: str = Form(...),
         gridRadios: str = Form(...),
         rate: str = Form(...),
@@ -36,7 +41,9 @@ class DepositBody(BaseModel):
         maturity_date: str = Form(...)
     ):
         return cls(
-            name=name,
+            account_number = account_number,
+            bank = bank,
+            note=note,
             type=gridRadios,
             principle=principle,
             rate=rate,
@@ -66,11 +73,13 @@ def _add(body, user_details):
 
     
     insert_json = {
+            "note": body.note,
+            "account_number": body.account_number,
+            "bank": body.bank,
             "account_id":       Decimal(user_details['account_id']), 	    # number
             "frequency":        Decimal(body.compound_frequency),			# number
             "id":               id,					                        # number
             "maturity_date":    maturity_date.for_json(),		            # string	pendulum.for_json()
-            "name":             body.name,				                    # string
             "principle":        Decimal(body.principle),		            # number
             "profile":          user_details["profile"],				    # string
             "rate":             Decimal(body.rate),		                    # float
@@ -94,13 +103,40 @@ def _add(body, user_details):
         }
     return response
 
+def get_unique_banks():
+  """Fetches unique bank names from a DynamoDB table.
+
+  Args:
+      table_name (str): Name of the DynamoDB table containing transaction data.
+
+  Returns:
+      dict: Dictionary where category is the key and a list of subcategories is the value.
+  """
+
+  table = _DB.dynamodb.Table('deposits')
+
+  # Scan the table using ProjectionExpression for efficiency
+  response = table.scan(ProjectionExpression="bank")
+  items = response.get('Items', [])
+
+  bank = list()
+  for item in items:
+
+    bank_name = item.get('bank')
+    bank.append(bank_name)
+
+  return list(set(bank))
+
 
 @depositAdd.get('/add-deposit', response_class=HTMLResponse)
 def get_index(request: Request, user_details = Depends(auth_wrapper)):
 
+    banks = get_unique_banks()
+
     return templates.TemplateResponse(
         "/deposit_UI/deposit_add.html", 
         {
+            "banks": banks,
             "request": request, 
             "profile":user_details['profile'],
             "show": False
@@ -114,7 +150,9 @@ def post_index(request: Request, form_data: DepositBody = Depends(DepositBody.as
     maturity = pendulum.parse(form_data.maturity_date, strict=False)
 
     body = {
-        "name": form_data.name,
+        "note": form_data.note,
+        "account_number": form_data.account_number,
+        "bank": form_data.bank,
         "type": form_data.type,
         "principle": form_data.principle,
         "rate": form_data.rate,
@@ -133,9 +171,12 @@ def post_index(request: Request, form_data: DepositBody = Depends(DepositBody.as
 
     response = _add(MyObject(**body), user_details)
 
+    banks = get_unique_banks()
+
     return templates.TemplateResponse(
             "/deposit_UI/deposit_add.html", 
             {
+                "banks":banks,
                 "request": request, 
                 "profile":user_details['profile'],
                 "show": True,

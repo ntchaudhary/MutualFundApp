@@ -3,7 +3,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
 from website.src.home_screen.index import deposit_details
-from utilities.utils import calculateSumFromListOFDict
+from utilities.utils import calculateSumFromListOFDict, convertDecimal
 from utilities.auth import auth_wrapper
 
 import asyncio
@@ -22,12 +22,14 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
 
         numberOfMatured = sum([ 1 for x in response.get('body') if x['isMatured']=='Yes' ])
 
+        body = convertDecimal(response.get('body'))
+
         return templates.TemplateResponse(
             "/deposit_UI/deposit_list.html", 
             {
                 "request": request, 
                 "profile":user_details['profile'],
-                "body":response.get('body'), 
+                "body":body, 
                 "count": len(response.get('body')),
                 "numberOfMatured":numberOfMatured,
                 "totalPrinciple": round(calculateSum("principle"),2),

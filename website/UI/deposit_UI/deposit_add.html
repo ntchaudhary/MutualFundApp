@@ -62,11 +62,7 @@
       <div class="col-sm-8 col-md-6">
         <br>
         <form method="POST">
-          <div class="mb-3">
-            <label for="name" class="form-label"><strong>Reason to invest</strong></label>
-            <input type="text" name="name" class="form-control" id="name"
-              placeholder="Enter your reason in one or two words">
-          </div>
+          
           <div class="mb-3">
             <fieldset>
               <legend class="mb-2"><strong>Select type of Deposit</strong></legend>
@@ -84,6 +80,22 @@
               </div>
             </fieldset>
           </div>
+
+          <div class="mb-3">
+            <label for="bank" class="form-label"><strong>Bank</strong></label>
+            <select class="form-select" id="bank" name="bank" aria-placeholder="Select">
+                <option>Please select bank</option>
+                {% for x in banks%}
+                <option value="{{x}}">{{x}}</option>
+                {% endfor %}
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="account_number" class="form-label"><strong>Deposit Account Number</strong></label>
+            <input type="text" class="form-control" name="account_number" id="account_number" placeholder="Enter Amount Number">
+          </div>
+
           <div class="mb-3">
             <label for="principle" class="form-label"><strong>Principle / Installment</strong></label>
             <input type="text" class="form-control" name="principle" id="principle" placeholder="Enter Amount">
@@ -123,6 +135,10 @@
             <label for="maturityDate" class="form-label"><strong>Maturity Date</strong></label>
             <input type="date" class="form-control" name="maturity_date" id="maturity_date"
               placeholder="deposit maturity date">
+          </div>
+          <div class="mb-3">
+            <label for="note" class="form-label"><strong>Note</strong></label>
+            <input type="text" name="note" class="form-control" id="note" placeholder="Enter your note in one or two words">
           </div>
           <div class="mb-3 text-center">
             <button type="submit" class="btn btn-primary" value="Submit">Submit</button>

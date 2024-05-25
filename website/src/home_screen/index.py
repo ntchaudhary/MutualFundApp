@@ -22,7 +22,6 @@ async def deposit_details(user_details) -> dict:
     table = _DB_OBJ.dynamodb.Table('deposits')
     response = list()
     status_code = 404
-    existsCheck = f''' select ID, NAME, TYPE, PRINCIPLE, RATE, FREQ, START_DATE, MATURITY_DATE from DEPOSIT '''
 
     try:
         await asyncio.sleep(0.000001)
@@ -34,7 +33,9 @@ async def deposit_details(user_details) -> dict:
                 if user_details['profile']!=value['profile']:
                     continue
                 id = value['id']
-                name = value['name']
+                account_number = value['account_number']
+                bank = value['bank']
+                note = value['note']
                 depositType = value['type']
                 principle = float(value['principle'])
                 rate = float(value['rate'])
@@ -53,13 +54,15 @@ async def deposit_details(user_details) -> dict:
 
                     dct_resp = {
                         "id" : id,
-                        "name":name.title(),
+                        "account_number":account_number,
+                        "bank":bank,
+                        "note":note,
                         "type": "Fixed Deposit",
                         "principle":principle,
                         "rate":rate,
                         "duration":f"{(maturity-start).in_months()} months",
-                        "start_date": start,
-                        "maturity_date":maturity,
+                        "start_date": start.for_json(),
+                        "maturity_date":maturity.for_json(),
                         "maturity_amount": round(amount,0),
                         "interest_earned": ( round(amount,0) - principle ) if (isMatured == "Yes") else round(c_interest,2),
                         "isMatured": isMatured
@@ -86,14 +89,16 @@ async def deposit_details(user_details) -> dict:
 
                     dct_resp = {
                         "id" : id,
-                        "name":name,
+                        "note":note,
+                        "account_number":account_number,
+                        "bank":bank,
                         "type": "Recurring Deposit",
                         "installment": principle,
                         "principle":principle*show_c_time,
                         "rate":rate,
                         "duration":f"{show_time} months",
-                        "start_date": start,
-                        "maturity_date":maturity,
+                        "start_date": start.for_json(),
+                        "maturity_date":maturity.for_json(),
                         "maturity_amount": round(rd_amount , 0),
                         "interest_earned": (round(rd_amount , 0) - (principle*show_c_time) ) if (isMatured == "Yes") else round(rd_current_interest, 2),
                         "isMatured": isMatured

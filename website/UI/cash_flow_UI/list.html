@@ -94,7 +94,7 @@
             <div class="tab-content" id="myTabContent">
                 <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
                     <div class="col">
-                        <div class="container py-5">
+                        <div class="py-5">
                             <div class="row ">
                                 <div class="col">
                                     <h3>Month</h3>
@@ -110,7 +110,7 @@
                     </div>
         
                     <div class="col">
-                        <div id="summary-table" class="container">
+                        <div id="summary-table">
                             <div class="accordion" id="myAccordionMonth">
                                 <!-- dynamic code  -->
                             </div>
@@ -121,7 +121,7 @@
                 </div>
                 <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
                     <div class="col">
-                        <div class="container py-5">
+                        <div class="py-5">
                             <div class="row ">
                                 <div class="col">
                                     <h3>Category</h3>
@@ -137,7 +137,7 @@
                     </div>
         
                     <div class="col">
-                        <div id="summary-table" class="container">
+                        <div id="summary-table" >
                             <div class="accordion" id="myAccordionCategory">
                                 <!-- dynamic code  -->
                             </div>
@@ -199,7 +199,7 @@
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${month}" aria-expanded="false" aria-controls="collapse${month}">
                             <div class="row w-100 h-100 mx-auto text-center">
                                 <div class="col">
-                                    <h6>${month.replace('_', ' ')}</h6>
+                                    <h6>${month.replaceAll('_', ' ')}</h6>
                                 </div>
                                 <div class="col">
                                     <h6 class="text-danger">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalExpense.toFixed(2))}</h6>
@@ -267,7 +267,7 @@
 
             // Iterate over the data to calculate total expense and total income for each category
             data.forEach(item => {
-                const category = item.category.replace(' ', '_'); // Extracting the category
+                const category = item.category.replaceAll(' ', '_'); // Extracting the category
                 if (!summaryMap.has(category)) {
                     summaryMap.set(category, {
                         totalExpense: 0,
@@ -293,7 +293,7 @@
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${category}" aria-expanded="false" aria-controls="collapse${category}">
                             <div class="row w-100 h-100 mx-auto text-center">
                                 <div class="col">
-                                    <h6>${category.replace('_', ' ')}</h6>
+                                    <h6>${category.replaceAll('_', ' ')}</h6>
                                 </div>
                                 <div class="col">
                                     <h6 class="text-danger">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalExpense.toFixed(2))}</h6>

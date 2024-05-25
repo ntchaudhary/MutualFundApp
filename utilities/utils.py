@@ -39,3 +39,23 @@ def convertDecimalAndGroupByYear(data: list) -> dict :
         segregated_data[value].append(tempDict)
     
     return segregated_data
+
+
+def convertDecimal(data: list) -> list :
+
+    segregated_data = list()
+
+    for dic in data:
+
+        tempDict = dict()
+        
+        # changing the data type to either float or string
+        for keys, values in dic.items():
+            if isinstance(values, Decimal):
+                tempDict[keys] = float(values)
+            else:
+                tempDict[keys] = values
+
+        segregated_data.append(tempDict)
+    
+    return segregated_data
