@@ -117,7 +117,9 @@ def get_unique_categories_and_subcategories(user_details):
 
   categories = {}
   income_expense_type = {"Expense":['None of the mentioned',],
-                         "Income":['None of the mentioned',]}
+                         "Income":['None of the mentioned',],
+                        "Invest":['None of the mentioned',]
+  }
   for item in items:
 
     if str(item["profile"])==str(user_details["profile"]) and str(item["account_id"])==str(user_details["account_id"]):
@@ -191,6 +193,8 @@ def post_index(request: Request, form_data: Income_Expense_Body = Depends(Income
     jsonData = jsonData.get('Items')
 
     if form_data.income_expense == 'Expense':
+        jsonData[0]['bank_balance'] = Decimal(jsonData[0]['bank_balance']) - Decimal(form_data.amount)
+    if form_data.income_expense == 'Invest':
         jsonData[0]['bank_balance'] = Decimal(jsonData[0]['bank_balance']) - Decimal(form_data.amount)
     if form_data.income_expense == 'Income':
         jsonData[0]['bank_balance'] = Decimal(jsonData[0]['bank_balance']) + Decimal(form_data.amount)

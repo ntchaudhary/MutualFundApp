@@ -1,6 +1,8 @@
 from mftool import Mftool
 from boto3.dynamodb.conditions import Key
 import json, boto3
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+
 
 _MF = Mftool()
 
@@ -36,4 +38,50 @@ def lambda_handler(event, context):
         response = table2.put_item(Item=x)
             
     print("Successfully Updated")
+
+    
+    try:
+        # Create a new SQS client
+        sqs = boto3.client('sqs')
+
+        # URL of the SQS queue
+        queue_url_mutual_fund = 'https://sqs.ap-south-1.amazonaws.com/701647385258/mutualFund_amount_update_queue'
+        queue_url_deposit = 'https://sqs.ap-south-1.amazonaws.com/701647385258/deposit_amount_update_queue'
+        
+
+        for data in items:
+            if data.get("profile_status") != 'active':
+                continue
+
+            messageAtributes = {
+                "account": str(data.get("account_id")),
+                "profile": str(data.get("profile"))
+                }
+                
+            messageBody = json.dumps(messageAtributes)
+
+            # Send the message
+            if data.get('fund_owned',[]):
+                response_mutual_fund = sqs.send_message(
+                                        QueueUrl=queue_url_mutual_fund,
+                                        MessageBody=messageBody,
+                                        # MessageGroupId='batch'
+                )
+                print(f'Mutual Fund Message ID: {response_mutual_fund["MessageId"]}')
+                                    
+            response_deposit = sqs.send_message(
+                                        QueueUrl=queue_url_deposit,
+                                        MessageBody=messageBody,
+                                        # MessageGroupId='batch'
+                                    )
+            # Print out the response
+            print(f'Deposit Message ID: {response_deposit["MessageId"]}')
+            
+    except NoCredentialsError:
+        print("Error: No AWS credentials found.")
+    except PartialCredentialsError:
+        print("Error: Incomplete AWS credentials found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
     return "Successfully Updated"

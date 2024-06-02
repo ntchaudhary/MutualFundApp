@@ -63,15 +63,19 @@
                     <br><br>
                     <div class="row">
 
-                        <h2>Overall Cash Flow</h2>
+                        <!--<h2>Overall Cash Flow</h2><br>-->
 
                         <div class="col">
-                            <h5>Total Expense</h5>
-                            <h4 id="total_expense">₹ 0</h4>
+                            <h4>Total Expense</h4>
+                            <h3 id="total_expense">₹ 0</h3>
                         </div>
                         <div class="col">
-                            <h5>Total Income</h5>
-                            <h4 id="total_income">₹ 0</h4>
+                            <h4>Total Income</h4>
+                            <h3 id="total_income">₹ 0</h3>
+                        </div>
+                        <div class="col">
+                            <h4>Total Invested</h4>
+                            <h3 id="total_invest">₹ 0</h3>
                         </div>
                     </div>
                 </div>
@@ -100,11 +104,16 @@
                                     <h3>Month</h3>
                                 </div>
                                 <div class="col">
-                                    <h3>Total Expense</h3>
+                                    <h3>Expense</h3>
                                 </div>
                                 <div class="col">
-                                    <h3>Total Income</h3>
+                                    <h3>Income</h3>
                                 </div>
+                                
+                                <div class="col">
+                                    <h3>Invested</h3>
+                                </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -127,10 +136,7 @@
                                     <h3>Category</h3>
                                 </div>
                                 <div class="col">
-                                    <h3>Total Expense</h3>
-                                </div>
-                                <div class="col">
-                                    <h3>Total Income</h3>
+                                    <h3>Total</h3>
                                 </div>
                             </div>
                         </div>
@@ -166,6 +172,7 @@
             const summaryMap = new Map();
             var total_expense = 0
             var total_income = 0
+            var total_invest = 0
 
             // Iterate over the data to calculate total expense and total income for each month
             data.forEach(item => {
@@ -174,6 +181,7 @@
                     summaryMap.set(month, {
                         totalExpense: 0,
                         totalIncome: 0,
+                        totalInvest: 0,
                         details: []
                     });
                 }
@@ -183,12 +191,16 @@
                 } else if (item.income_expense === 'Income') {
                     total_income += item.amount;
                     summaryMap.get(month).totalIncome += item.amount;
+                } else if (item.income_expense === 'Invest') {
+                    total_invest += item.amount;
+                    summaryMap.get(month).totalInvest += item.amount;
                 }
                 summaryMap.get(month).details.push(item);
             });
 
             document.getElementById('total_expense').innerHTML = '₹ ' + new Intl.NumberFormat('en-IN').format(total_expense.toFixed(2));
             document.getElementById('total_income').innerHTML = '₹ ' + new Intl.NumberFormat('en-IN').format(total_income.toFixed(2));
+            document.getElementById('total_invest').innerHTML = '₹ ' + new Intl.NumberFormat('en-IN').format(total_invest.toFixed(2));
 
             // Generate summary rows
             summaryMap.forEach((summaryData, month) => {
@@ -206,6 +218,9 @@
                                 </div>
                                 <div class="col">
                                     <h6 class="text-success">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalIncome.toFixed(2))}</h6>
+                                </div>
+                                <div class="col">
+                                    <h6 class="text-primary">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalInvest.toFixed(2))}</h6>
                                 </div>
                             </div>
                         </button>
@@ -253,6 +268,9 @@
                     } else if (item.income_expense === 'Expense') {
                         // detailsRow.bgColor= "#b42d2d";
                         detailsRow.classList.add("table-danger");
+                    } else if (item.income_expense === 'Invest') {
+                        // detailsRow.bgColor= "#b42d2d";
+                        detailsRow.classList.add("table-primary");
                     }
                     summaryRow.querySelector(`.details-row-${month}`).appendChild(detailsRow);
                 });
@@ -267,7 +285,7 @@
 
             // Iterate over the data to calculate total expense and total income for each category
             data.forEach(item => {
-                const category = item.category.replaceAll(' ', '_'); // Extracting the category
+                const category = item.category.replaceAll(' ', '_') + '_' + item.income_expense ; // Extracting the category
                 if (!summaryMap.has(category)) {
                     summaryMap.set(category, {
                         totalExpense: 0,
@@ -275,11 +293,14 @@
                         details: []
                     });
                 }
-                if (item.income_expense === 'Expense') {
-                    summaryMap.get(category).totalExpense += item.amount;
-                } else if (item.income_expense === 'Income') {
-                    summaryMap.get(category).totalIncome += item.amount;
-                }
+                
+                summaryMap.get(category).totalExpense += item.amount;
+                
+                // if (item.income_expense === 'Expense') {
+                    // summaryMap.get(category).totalExpense += item.amount;
+                // } else if (item.income_expense === 'Income') {
+                    // summaryMap.get(category).totalIncome += item.amount;
+                // }
                 summaryMap.get(category).details.push(item);
             });
 
@@ -293,13 +314,10 @@
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${category}" aria-expanded="false" aria-controls="collapse${category}">
                             <div class="row w-100 h-100 mx-auto text-center">
                                 <div class="col">
-                                    <h6>${category.replaceAll('_', ' ')}</h6>
+                                    <h6>${category.replaceAll('_', ' ').replaceAll('Expense', '').replaceAll('Income','').replaceAll('Invest','')}</h6>
                                 </div>
                                 <div class="col">
-                                    <h6 class="text-danger">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalExpense.toFixed(2))}</h6>
-                                </div>
-                                <div class="col">
-                                    <h6 class="text-success">₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalIncome.toFixed(2))}</h6>
+                                    <h6 class=${(category.indexOf('Expense') > -1) ? "text-danger":"text-success" }>₹ ${new Intl.NumberFormat('en-IN').format(summaryData.totalExpense.toFixed(2))}</h6>
                                 </div>
                             </div>
                         </button>
@@ -347,6 +365,9 @@
                     } else if (item.income_expense === 'Expense') {
                         // detailsRow.bgColor= "#b42d2d";
                         detailsRow.classList.add("table-danger");
+                    } else if (item.income_expense === 'Invest') {
+                        // detailsRow.bgColor= "#b42d2d";
+                        detailsRow.classList.add("table-primary");
                     }
                     summaryRow.querySelector(`.details-row-${category}`).appendChild(detailsRow);
                 });
