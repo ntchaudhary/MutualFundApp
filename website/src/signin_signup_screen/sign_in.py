@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse , RedirectResponse
 from boto3.dynamodb.conditions import Key
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 from utilities.auth import AuthHandler
@@ -60,6 +60,6 @@ def signin_post(request: Request, auth_details: AuthDetails = Depends(AuthDetail
     else:
         token = auth_handler.encode_token(auth_details.account_id, auth_details.profile)
         response = RedirectResponse(url="/website/home", status_code=303)
-        expireTime = datetime.utcnow() + timedelta(days=0, minutes=20)
+        expireTime = datetime.now(timezone.utc) + timedelta(days=0, minutes=20)
         response.set_cookie(key="token", value=token, expires=expireTime)
         return response
