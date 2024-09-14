@@ -74,6 +74,20 @@ async def deposit_details(user_details):
 
                     accrued_interest = amount - float(value['principle'])
 
+                    try:
+                        await asyncio.sleep(0.000001)
+                        response_interest = table2.update_item (
+                            Key = {'account_id': decimal.Decimal(value['account_id']), 'id': decimal.Decimal(value['id'])},
+                            UpdateExpression='SET interest_earned = :interest_earned',           
+                            ExpressionAttributeValues={
+                                ':interest_earned': decimal.Decimal(str(round(accrued_interest,2)))
+                            },
+                            ReturnValues='UPDATED_NEW'
+                        )
+                        await asyncio.sleep(0.000001)
+                    except Exception as err:
+                        print('Error updating FD item',err)
+
                 if depositType=='RD':
                     rd_current_interest = 0
                     show_c_time = c_time = (pendulum.today().date()-start).in_months() + 1 # this +1 is because we have already paid the first installment before the fist month completed
@@ -85,19 +99,20 @@ async def deposit_details(user_details):
                     response.append( (installment*show_c_time)+rd_current_interest )
                     accrued_interest = rd_current_interest
 
-                try:
-                    await asyncio.sleep(0.000001)
-                    response_interest = table2.update_item (
-                        Key = {'account_id': decimal.Decimal(value['account_id']), 'id': decimal.Decimal(value['id'])},
-                        UpdateExpression='SET interest_earned = :interest_earned',           
-                        ExpressionAttributeValues={
-                            ':interest_earned': decimal.Decimal(str(round(accrued_interest,2)))
-                        },
-                        ReturnValues='UPDATED_NEW'
-                    )
-                    await asyncio.sleep(0.000001)
-                except Exception as err:
-                    print('Error updating item',err)
+                    try:
+                        await asyncio.sleep(0.000001)
+                        response_interest = table2.update_item (
+                            Key = {'account_id': decimal.Decimal(value['account_id']), 'id': decimal.Decimal(value['id'])},
+                            UpdateExpression='SET interest_earned = :interest_earned, principle = :principle',           
+                            ExpressionAttributeValues={
+                                ':interest_earned': decimal.Decimal(str(round(accrued_interest,2))),
+                                ':principle': decimal.Decimal(str(installment*show_c_time))
+                            },
+                            ReturnValues='UPDATED_NEW'
+                        )
+                        await asyncio.sleep(0.000001)
+                    except Exception as err:
+                        print('Error updating RD item',err)
 
                 print('deposite table update',response_interest['Attributes'])
         

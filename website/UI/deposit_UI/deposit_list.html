@@ -86,11 +86,11 @@
             <br />
             <div class="row">
               <div class="col">
-                <h4>Total Invested</h4>
+                <h4>Total Principal</h4>
                 <h2 id="totalPrinciple">{{totalPrinciple}}</h2>
               </div>
               <div class="col">
-                  <h4>Accrued Interest</h4>
+                  <h4>Total Accrued Interest</h4>
                   <h2 id="total_interest_earned">{{total_interest_earned}}</h2>
               </div>
               <!-- <div class="col"> -->
@@ -115,7 +115,7 @@
             <h3>Bank</h3>
           </div>
           <div class="col">
-            <h3>Total Invested</h3>
+            <h3>Total Principal</h3>
           </div>
           <div class="col">
             <h3>Matured</h3>
@@ -152,7 +152,7 @@ data.forEach(item => {
       details: []
     });
   }
-  if (item.isMatured === "Yes") {
+  if (item.isMatured === true) {
     summaryMap.get(bank).totalMatured += 1;
   } 
   
@@ -200,7 +200,7 @@ summaryMap.forEach((summaryData, bank) => {
                 <th>Installment</th>
                 <th>Principal</th>
                 <th>Maturity</th>
-                <th>Interest(till date)</th>
+                <th>Accrued Interest</th>
                 <th>Interest Rate</th>
                 <th>Duration</th>
                 <th>Start Date</th>
@@ -235,12 +235,12 @@ summaryMap.forEach((summaryData, bank) => {
       <td>${item.duration} months</td>
       <td>${item.start_date}</td>
       <td>${item.maturity_date}</td>
-      <td>${item.isMatured}</td>
+      <td>${item.isMatured ? 'Yes' : 'No'}</td>
       <td>${item.note}</td>
       <td><button onclick="deleteEntry(${item.id})" class="btn btn-sm fw-bold bg-white">Delete</button></td>
     `;
     // Add classes based on income_expense value
-    if (item.isMatured === 'Yes') {
+    if (item.isMatured === true) {
       // detailsRow.bgColor= "#b42d2d";
       detailsRow.classList.add("table-danger");
     }

@@ -35,6 +35,10 @@ async def deposit_details(user_details) -> dict:
             response = values["Items"]
         else:
             raise ValueError(f'No Deposite is present in system')
+        
+
+        for row in response:
+            row['isMatured'] = False if pendulum.parse(row['maturity_date'], strict=False).date() >= pendulum.today().date() else True
 
     except ValueError as e:
         status_code = 404
@@ -59,8 +63,6 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
     if str(response.get('status')) == '200':
         calculateSum = calculateSumFromListOFDict(response.get('body'))
 
-        numberOfMatured = sum([ 1 for x in response.get('body') if x['isMatured'] ])
-
         body = convertDecimal(response.get('body'))
 
         return templates.TemplateResponse(
@@ -70,7 +72,6 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
                 "profile":user_details['profile'],
                 "body":body, 
                 "count": len(response.get('body')),
-                "numberOfMatured":numberOfMatured,
                 "totalPrinciple": round(calculateSum("principle"),2),
                 "total_interest_earned": round(calculateSum("interest_earned"),2)
             }
