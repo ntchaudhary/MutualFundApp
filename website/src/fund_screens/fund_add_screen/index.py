@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from decimal import Decimal
 from boto3.dynamodb.conditions import Key
-import json
+import json, gc
 
 from utilities.auth import auth_wrapper
 from database.dbSetupAndConnection import Connection
@@ -18,21 +18,12 @@ _DBObj = Connection()
 with open('static/mutualFundApp/fundList.json', 'rb') as data:
         jsonData11 = json.load(data)
 
-tmp = [ {'key':x[0], 'value': x[1]} for x in jsonData11.items() 
-                if 
-                'regular' not in x[1].lower() and 
-                'day' not in x[1].lower() and 
-                'interval' not in x[1].lower() and 
-                'series' not in x[1].lower() and 
-                'fixed' not in x[1].lower() and 
-                'protection' not in x[1].lower() and 
-                'dividend' not in x[1].lower() and 
-                'fmp' not in x[1].lower() and 
-                'idcw' not in x[1].lower() and 
-                'distribution' not in x[1].lower()
-                ]
+tmp = [ {'key':x[0], 'value': x[1]} for x in jsonData11.items() ]
+
 tmp = sorted(tmp, key=lambda d: d['value']) 
 
+del jsonData11
+gc.collect()
 
 class DepositBody(BaseModel):
     key: str
@@ -81,6 +72,8 @@ def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_f
                 tableName=table_name,
                 insertData=jsonData
             )
+
+            gc.collect()
 
             x = _MF.get_scheme_quote(form_data.key)
             x['fund_id'] = x['scheme_code']
