@@ -31,83 +31,8 @@ async def deposit_details(user_details) -> dict:
         await asyncio.sleep(0.000001)
 
         if values['Items']:
-            for value in values['Items']:
-                if user_details['profile']!=value['profile']:
-                    continue
-                id = value['id']
-                account_number = value['account_number']
-                bank = value['bank']
-                note = value['note']
-                depositType = value['type']
-                principle = float(value['principle'])
-                rate = float(value['rate'])
-                freq = float(value['frequency'])
-                start = pendulum.parse(value['start_date'], strict=False).date() 
-                maturity = pendulum.parse(value['maturity_date'], strict=False).date() 
-
-                if depositType == 'FD':
-                    c_time = ((pendulum.today().date()-start).in_days())/365
-                    time = ((maturity-start).in_months())/12
-
-                    amount = principle*( ( 1 + ( (rate/freq)/100) )**( freq*time ) )
-                    c_interest = principle*( ( 1 + ( (rate/freq)/100) )**( freq*c_time ) ) - principle
-
-                    isMatured = "Yes" if (pendulum.today().date() >= maturity) else "No"
-
-                    dct_resp = {
-                        "id" : id,
-                        "account_number":account_number,
-                        "bank":bank,
-                        "note":note,
-                        "type": "Fixed Deposit",
-                        "principle":principle,
-                        "rate":rate,
-                        "duration":f"{(maturity-start).in_months()} months",
-                        "start_date": start.for_json(),
-                        "maturity_date":maturity.for_json(),
-                        "maturity_amount": round(amount,0),
-                        "interest_earned": ( round(amount,0) - principle ) if (isMatured == "Yes") else round(c_interest,2),
-                        "isMatured": isMatured
-                    }   
-                    response.append(dct_resp)
-
-                if depositType=='RD':
-
-                    show_time = time = (maturity-start).in_months()
-                    show_c_time = c_time = (pendulum.today().date()-start).in_months() + 1 # this +1 is because we have already paid the first installment before the fist month completed
-
-                    rd_amount=0
-                    rd_current_interest = 0
-
-                    while time>=1:
-                        rd_amount += principle*( ( 1 + ( (rate/freq)/100) )**( freq*time/12 ) )
-                        time -=1
-
-                    while c_time>=1:
-                        rd_current_interest += principle*( ( 1 + ( (rate/freq)/100) )**( freq*c_time/12 ) ) - principle
-                        c_time -=1
-
-                    isMatured = "Yes" if (pendulum.today().date() >= maturity) else "No"
-
-                    dct_resp = {
-                        "id" : id,
-                        "note":note,
-                        "account_number":account_number,
-                        "bank":bank,
-                        "type": "Recurring Deposit",
-                        "installment": principle,
-                        "principle":principle*show_c_time,
-                        "rate":rate,
-                        "duration":f"{show_time} months",
-                        "start_date": start.for_json(),
-                        "maturity_date":maturity.for_json(),
-                        "maturity_amount": round(rd_amount , 0),
-                        "interest_earned": (round(rd_amount , 0) - (principle*show_c_time) ) if (isMatured == "Yes") else round(rd_current_interest, 2),
-                        "isMatured": isMatured
-                    }   
-                    response.append(dct_resp)
-            else:
-                status_code = 200
+            status_code = 200
+            response = values["Items"]
         else:
             raise ValueError(f'No Deposite is present in system')
 
@@ -134,7 +59,7 @@ def index(request: Request, user_details = Depends(auth_wrapper)):
     if str(response.get('status')) == '200':
         calculateSum = calculateSumFromListOFDict(response.get('body'))
 
-        numberOfMatured = sum([ 1 for x in response.get('body') if x['isMatured']=='Yes' ])
+        numberOfMatured = sum([ 1 for x in response.get('body') if x['isMatured'] ])
 
         body = convertDecimal(response.get('body'))
 

@@ -4,12 +4,13 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from boto3.dynamodb.conditions import Key
 from pydantic import BaseModel
-from decimal import Decimal
-import pendulum, json
-
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from database.dbSetupAndConnection import Connection
 from utilities.utils import MyObject
 from utilities.auth import auth_wrapper
+
+import pendulum, boto3, json, decimal
+
 
 depositAdd = APIRouter()
 templates = Jinja2Templates(directory="website/UI")
@@ -60,37 +61,58 @@ def _add(body, user_details):
     start_date = pendulum.date(year=body.start_date['year'], month=body.start_date['month'], day=body.start_date['day'])
     maturity_date = pendulum.date(year=body.maturity_date['year'], month=body.maturity_date['month'], day=body.maturity_date['day'])
 
-    response = table.query(
-        KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])),
-        ScanIndexForward=False,  # Set to True for ascending order, False for descending order
-        Limit = 1
-    )
-
-    if response["Items"]:
-        id = response["Items"][0]["id"]+1
-    else:
-        id = 1
-
-    
-    insert_json = {
-            "note": body.note,
-            "account_number": body.account_number,
-            "bank": body.bank,
-            "account_id":       Decimal(user_details['account_id']), 	    # number
-            "frequency":        Decimal(body.compound_frequency),			# number
-            "id":               id,					                        # number
-            "maturity_date":    maturity_date.for_json(),		            # string	pendulum.for_json()
-            "principle":        Decimal(body.principle),		            # number
-            "profile":          user_details["profile"],				    # string
-            "rate":             Decimal(body.rate),		                    # float
-            "start_date":       start_date.for_json(),            		    # string	pendulum.for_json()
-            "type":             body.type		                            # string
-        }
-
-    _DB.insertDynamodbRow('deposits',insertData=[insert_json,])
-    
     try:
-        print(insert_json)
+        response = table.query(
+            KeyConditionExpression = Key('account_id').eq(decimal.Decimal(user_details['account_id'])),
+            ScanIndexForward=False,  # Set to True for ascending order, False for descending order
+            Limit = 1
+        )
+
+        if response["Items"]:
+            id = response["Items"][0]["id"]+1
+        else:
+            id = 1
+
+        amount= 0
+
+        if body.type == 'FD':
+            c_time = ((pendulum.today().date()-start_date).in_days())/365
+            time = ((maturity_date-start_date).in_months())/12
+            amount = float(body.principle)*( ( 1 + ( (float(body.rate)/body.compound_frequency)/100) )**( body.compound_frequency*time ) )
+
+        elif body.type == 'RD':
+            time = (maturity_date-start_date).in_months()
+            c_time = (pendulum.today().date()-start_date).in_months() + 1 # this +1 is because we have already paid the first installment before the fist month completed      
+            while time>=1:
+                amount += float(body.principle)*( ( 1 + ( (float(body.rate)/body.compound_frequency)/100) )**( body.compound_frequency*time/12 ) )
+                time -=1
+
+        insert_json = {
+                "note":             body.note,
+                "account_number":   body.account_number,
+                "bank":             body.bank,
+                "account_id":       decimal.Decimal(user_details['account_id']), 	                                                                # number
+                "frequency":        decimal.Decimal(body.compound_frequency),			                                                            # number
+                "id":               id,					                                                                                            # number
+                "maturity_date":    maturity_date.for_json(),		                                                                                # string	pendulum.for_json()
+                "principle":        decimal.Decimal(body.principle) if body.type == 'FD' else decimal.Decimal(float(body.principle)*c_time),        # number
+                "profile":          user_details["profile"],				                                                                        # string
+                "rate":             decimal.Decimal(body.rate),		                                                                                # number
+                "start_date":       start_date.for_json(),            		                                                                        # string	pendulum.for_json()
+                "type":             body.type,		                                                                                                # string
+                "duration":         (maturity_date-start_date).in_months(),                                                                         # number
+                "installment":      decimal.Decimal(body.principle) if body.type == 'RD' else decimal.Decimal(),                                    # number
+                "interest_earned":  decimal.Decimal(),                                                                                              # number
+                "isMatured":        False,                                                                                                          # boolean
+                "maturity_amount":  decimal.Decimal(str(round(amount,0) ))                                                                          # number
+            }
+        
+        print('line 114', insert_json)
+
+        _DB.insertDynamodbRow('deposits',insertData=[insert_json,])
+
+
+        sendMessageToQueue(user_details)
         
         response = {
             "status" : 200,
@@ -101,7 +123,42 @@ def _add(body, user_details):
             "status": 500,
             "message": str(e)
         }
+    print(response)
+
     return response
+
+def sendMessageToQueue(user_details):
+
+    try:
+        # Create a new SQS client
+        sqs = boto3.client('sqs')
+
+        # URL of the SQS queue
+        queue_url_deposit = 'https://sqs.ap-south-1.amazonaws.com/701647385258/deposit_amount_update_queue'
+        
+        messageAtributes = {
+                "account": str(user_details['account_id']),
+                "profile": str(user_details['profile'])
+                }
+                
+        messageBody = json.dumps(messageAtributes)
+
+            # Send the message
+
+        response_deposit = sqs.send_message(
+                                        QueueUrl=queue_url_deposit,
+                                        MessageBody=messageBody,
+                                        # MessageGroupId='batch'
+                                    )
+            # Print out the response
+        print(f'Deposit Message ID: {response_deposit["MessageId"]}')
+            
+    except NoCredentialsError:
+        raise Exception ("Error: No AWS credentials found.")
+    except PartialCredentialsError:
+        raise Exception ("Error: Incomplete AWS credentials found.")
+    except Exception as e:
+        raise Exception (f"An error occurred: {e}")
 
 def get_unique_banks():
   """Fetches unique bank names from a DynamoDB table.
@@ -144,7 +201,7 @@ def get_index(request: Request, user_details = Depends(auth_wrapper)):
     )
 
 @depositAdd.post('/add-deposit', response_class=HTMLResponse)
-def post_index(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
+async def post_index(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
 
     start = pendulum.parse(form_data.start_date, strict=False)
     maturity = pendulum.parse(form_data.maturity_date, strict=False)
@@ -190,7 +247,9 @@ def _delete(fdID: str, user_details = Depends(auth_wrapper)):
     """Delete FD or RD entry from database"""
 
     try:
-        _DB.deleteDynamodbRow( 'deposits', {'account_id': Decimal(user_details['account_id']),'id': Decimal(fdID)} )
+        _DB.deleteDynamodbRow( 'deposits', {'account_id': decimal.Decimal(user_details['account_id']),'id': decimal.Decimal(fdID)} )
+
+        sendMessageToQueue(user_details)
 
         response = {
             "status" : 200,

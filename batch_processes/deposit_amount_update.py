@@ -1,4 +1,5 @@
 
+import asyncio
 import decimal
 import json
 from boto3.dynamodb.conditions import Key
@@ -11,7 +12,7 @@ dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('account_and_user_profile')
 table2 = dynamodb.Table('deposits')
 
-def deposit_details(user_details):
+async def deposit_details(user_details):
     # Get the default context
     context = decimal.getcontext()
     
@@ -22,14 +23,18 @@ def deposit_details(user_details):
     response = list()
 
     try:
+        await asyncio.sleep(0.000001)
         values = table2.query(  KeyConditionExpression = Key('account_id').eq(decimal.Decimal(user_details['account_id'])) )
-        
+        await asyncio.sleep(0.000001)
+
         if values['Items']:
             for value in values['Items']:
-                if user_details['profile']!=value['profile']:
-                    continue
+
+                accrued_interest = 0
+                
                 depositType = value['type']
                 principle = float(value['principle'])
+                installment = float(value['installment'])
                 rate = float(value['rate'])
                 freq = float(value['frequency'])
                 start = pendulum.parse(value['start_date'], strict=False).date() 
@@ -67,36 +72,58 @@ def deposit_details(user_details):
 
                     response.append(amount) 
 
+                    accrued_interest = amount - float(value['principle'])
+
                 if depositType=='RD':
                     rd_current_interest = 0
                     show_c_time = c_time = (pendulum.today().date()-start).in_months() + 1 # this +1 is because we have already paid the first installment before the fist month completed
 
                     while c_time>=1:
-                        rd_current_interest += principle*( ( 1 + ( (rate/freq)/100) )**( freq*c_time/12 ) ) - principle
+                        rd_current_interest += installment*( ( 1 + ( (rate/freq)/100) )**( freq*c_time/12 ) ) - installment
                         c_time -=1
                     
-                    response.append( (principle*show_c_time)+rd_current_interest )
+                    response.append( (installment*show_c_time)+rd_current_interest )
+                    accrued_interest = rd_current_interest
 
-        jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(decimal.Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
+                try:
+                    await asyncio.sleep(0.000001)
+                    response_interest = table2.update_item (
+                        Key = {'account_id': decimal.Decimal(value['account_id']), 'id': decimal.Decimal(value['id'])},
+                        UpdateExpression='SET interest_earned = :interest_earned',           
+                        ExpressionAttributeValues={
+                            ':interest_earned': decimal.Decimal(str(round(accrued_interest,2)))
+                        },
+                        ReturnValues='UPDATED_NEW'
+                    )
+                    await asyncio.sleep(0.000001)
+                except Exception as err:
+                    print('Error updating item',err)
 
-        jsonData = jsonData.get('Items')[0]
+                print('deposite table update',response_interest['Attributes'])
         
         totalAmount = round(sum(response))
         
-        print(response)
+        print(response)        
+    
+        response = table.update_item (
+            Key={'account_id': decimal.Decimal(user_details['account_id']), 'profile': user_details['profile']},    # Specify the primary key
+            UpdateExpression='SET current_deposit_amount = :current_deposit_amount',                                # Update expression
+            ExpressionAttributeValues={
+                ':current_deposit_amount': decimal.Decimal(str(totalAmount))                                        # New value for the email attribute
+            },
+            ReturnValues='UPDATED_NEW'                                                                              # Returns the updated attributes
+        )
 
-        jsonData['current_deposit_amount'] = decimal.Decimal(str(totalAmount))
+        print('Account and user table update', response['Attributes'])
 
-        response = table.put_item(Item=jsonData)
-        response = {
-            "message": 'success'
-        }
+        return{'message : successfully updated '}
+
     except Exception as e:
-        response = {
+        output= {
             "message": str(e)
         }
-
-    return(response)
+        print(output)
+        return(output)
 
 
 def lambda_handler(event, context):
@@ -112,5 +139,5 @@ def lambda_handler(event, context):
         user_details['profile'] = body.get('profile')
 
         print(f'going for user : {user_details}')
-        reponse = deposit_details(user_details)
+        reponse = asyncio.run(deposit_details(user_details))
         print(reponse)

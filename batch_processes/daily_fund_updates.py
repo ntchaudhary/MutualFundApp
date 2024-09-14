@@ -1,3 +1,4 @@
+from datetime import datetime
 from mftool import Mftool
 from boto3.dynamodb.conditions import Key
 import json, boto3
@@ -68,8 +69,9 @@ def lambda_handler(event, context):
                                         # MessageGroupId='batch'
                 )
                 print(f'Mutual Fund Message ID: {response_mutual_fund["MessageId"]}')
-                                    
-            response_deposit = sqs.send_message(
+
+            if datetime.now().day == 1:                        
+                response_deposit = sqs.send_message(
                                         QueueUrl=queue_url_deposit,
                                         MessageBody=messageBody,
                                         # MessageGroupId='batch'
