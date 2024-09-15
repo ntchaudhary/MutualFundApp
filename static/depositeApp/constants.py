@@ -1,0 +1,1 @@
+DEPOSIT_SQS_URL = 'https://sqs.ap-south-1.amazonaws.com/701647385258/deposit_amount_update_queue'

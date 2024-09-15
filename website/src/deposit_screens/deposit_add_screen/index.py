@@ -4,10 +4,10 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from boto3.dynamodb.conditions import Key
 from pydantic import BaseModel
-from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from database.dbSetupAndConnection import Connection
-from utilities.utils import MyObject
+from utilities.utils import MyObject, sendMessageToQueue
 from utilities.auth import auth_wrapper
+from static.depositeApp.constants import DEPOSIT_SQS_URL
 
 import pendulum, boto3, json, decimal
 
@@ -16,6 +16,9 @@ depositAdd = APIRouter()
 templates = Jinja2Templates(directory="website/UI")
 
 _DB = Connection()
+
+# URL of the SQS queue
+
 
 class DepositBody(BaseModel):
     note: Optional[str] = None
@@ -112,7 +115,7 @@ def _add(body, user_details):
         _DB.insertDynamodbRow('deposits',insertData=[insert_json,])
 
 
-        sendMessageToQueue(user_details)
+        sendMessageToQueue(user_details, DEPOSIT_SQS_URL)
         
         response = {
             "status" : 200,
@@ -127,38 +130,6 @@ def _add(body, user_details):
 
     return response
 
-def sendMessageToQueue(user_details):
-
-    try:
-        # Create a new SQS client
-        sqs = boto3.client('sqs')
-
-        # URL of the SQS queue
-        queue_url_deposit = 'https://sqs.ap-south-1.amazonaws.com/701647385258/deposit_amount_update_queue'
-        
-        messageAtributes = {
-                "account": str(user_details['account_id']),
-                "profile": str(user_details['profile'])
-                }
-                
-        messageBody = json.dumps(messageAtributes)
-
-            # Send the message
-
-        response_deposit = sqs.send_message(
-                                        QueueUrl=queue_url_deposit,
-                                        MessageBody=messageBody,
-                                        # MessageGroupId='batch'
-                                    )
-            # Print out the response
-        print(f'Deposit Message ID: {response_deposit["MessageId"]}')
-            
-    except NoCredentialsError:
-        raise Exception ("Error: No AWS credentials found.")
-    except PartialCredentialsError:
-        raise Exception ("Error: Incomplete AWS credentials found.")
-    except Exception as e:
-        raise Exception (f"An error occurred: {e}")
 
 def get_unique_banks():
   """Fetches unique bank names from a DynamoDB table.
@@ -249,7 +220,7 @@ def _delete(fdID: str, user_details = Depends(auth_wrapper)):
     try:
         _DB.deleteDynamodbRow( 'deposits', {'account_id': decimal.Decimal(user_details['account_id']),'id': decimal.Decimal(fdID)} )
 
-        sendMessageToQueue(user_details)
+        sendMessageToQueue(user_details,DEPOSIT_SQS_URL)
 
         response = {
             "status" : 200,
