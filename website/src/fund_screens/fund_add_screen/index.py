@@ -3,27 +3,20 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from decimal import Decimal
-from boto3.dynamodb.conditions import Key
-import json, gc
-
+from botocore.exceptions import ClientError
+from static.mutualFundApp.constants import MUTUAL_FUND_SQS_URL
 from utilities.auth import auth_wrapper
 from database.dbSetupAndConnection import Connection
+from utilities.utils import sendMessageToQueue
 
+import json
 
 fundAdd = APIRouter()
 templates = Jinja2Templates(directory="website/UI")
 
 _DBObj = Connection()
 
-with open('static/mutualFundApp/fundList.json', 'rb') as data:
-        jsonData11 = json.load(data)
 
-tmp = [ {'key':x[0], 'value': x[1]} for x in jsonData11.items() ]
-
-tmp = sorted(tmp, key=lambda d: d['value']) 
-
-del jsonData11
-gc.collect()
 
 class DepositBody(BaseModel):
     key: str
@@ -41,6 +34,13 @@ class DepositBody(BaseModel):
 @fundAdd.get('/add-fund', response_class=HTMLResponse)
 def get(request: Request, user_details = Depends(auth_wrapper)):
 
+    with open('static/mutualFundApp/fundList.json', 'rb') as data:
+        jsonData11 = json.load(data)
+
+        tmp = [ {'key':x[0], 'value': x[1]} for x in jsonData11.items() ]
+
+        tmp = sorted(tmp, key=lambda d: d['value']) 
+
     
     return templates.TemplateResponse(
         "/fund_UI/fund_add.html", 
@@ -55,44 +55,56 @@ def get(request: Request, user_details = Depends(auth_wrapper)):
 @fundAdd.post('/add-fund', response_class=HTMLResponse)
 def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
 
-    from mftool import Mftool
+    try:
 
-    _MF = Mftool()
+        with open('static/mutualFundApp/fundList.json', 'rb') as data:
+            jsonData11 = json.load(data)
 
-    table_name = 'account_and_user_profile'
-    table = _DBObj.dynamodb.Table(table_name)
-    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
-    jsonData = jsonData.get('Items')
+            tmp = [ {'key':x[0], 'value': x[1]} for x in jsonData11.items() ]
 
-    if form_data.key not in jsonData[0].get('fund_owned'):
-        jsonData[0]['fund_owned'].append(Decimal(form_data.key))
+            tmp = sorted(tmp, key=lambda d: d['value']) 
 
-        try:
-            _DBObj.insertDynamodbRow(
-                tableName=table_name,
-                insertData=jsonData
-            )
+        if form_data.key == 'None' :
+            raise Exception('Please select fund from the list')
+        
+        table = _DBObj.dynamodb.Table('fund_owned_details')
 
-            gc.collect()
+        table.put_item(
+              Item= {
+                   "account_id": str(user_details['account_id']),
+                   "fund_id": str(form_data.key),
+                   "scheme_name": jsonData11[form_data.key]
+              },
+              ConditionExpression = 'attribute_not_exists(account_id) AND attribute_not_exists(fund_id)'
+        )
 
-            x = _MF.get_scheme_quote(form_data.key)
-            x['fund_id'] = x['scheme_code']
-            del x['scheme_code']
-            x['exitTime'] = 9
-            x = json.loads(json.dumps(x))
+        print("Successfully inserted ")
+        message = 'Successfully Added'
+        status = 200
 
-            table2 = _DBObj.dynamodb.Table('fund_details')
-            table2.put_item(Item=x)
+        sendMessageToQueue(
+            {
+                'account_id':user_details['account_id'],
+                'fund_id': form_data.key,
+                'operation': 'new'
+            },
+            MUTUAL_FUND_SQS_URL
+        )
 
-            message = "ADDED SUCCESSFULLY"
-            status = 200
-        except Exception as e:
-            message = e.args[0].upper()
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+            print("Item with the same partition key and sort key already exists.")
+            message = 'FUND ALREADY EXISTS'
             status = 500
+        else:
+            print("Unexpected error occurred:", e)
+            message = e
+            status = 500
+        
+    except Exception as e:
+        message = e.args[0]
+        status = 500
 
-    else:
-        message = 'FUND ALREADY EXISTS'
-        status = 400
     return templates.TemplateResponse(
         "/fund_UI/fund_add.html", 
         {

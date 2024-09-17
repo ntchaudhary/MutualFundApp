@@ -2,6 +2,9 @@ from decimal import Decimal
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import json, boto3
 
+# Create a new SQS client
+sqs = boto3.client('sqs')
+
 def calculateSumFromListOFDict(listOfDictry):
     return lambda key: sum([float(y.get(key)) for y in listOfDictry])
 
@@ -66,8 +69,6 @@ def convertDecimal(data: list) -> list :
 def sendMessageToQueue(messageAtributes:dict, queue_url_deposit):
 
     try:
-        # Create a new SQS client
-        sqs = boto3.client('sqs')
                 
         messageBody = json.dumps(messageAtributes)
 

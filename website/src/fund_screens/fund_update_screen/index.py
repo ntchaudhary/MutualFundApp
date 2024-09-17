@@ -8,7 +8,8 @@ from decimal import Decimal
 import pandas as pd
 import pendulum,json
 
-from utilities.utils import MyObject
+from static.mutualFundApp.constants import MUTUAL_FUND_SQS_URL
+from utilities.utils import MyObject, sendMessageToQueue
 from utilities.auth import auth_wrapper
 from database.dbSetupAndConnection import Connection
 
@@ -41,37 +42,39 @@ class DepositBody(BaseModel):
 
 
 def _buy(schemeCode, body):
-    """calculating the monthly NAV units purchased and then inserting it into DataBase with
-    date of nav and amount invested
+    """calculating the monthly NAV units purchased and then inserting it into DataBase with date of nav and amount invested
     """
     from mftool import Mftool
     _MF = Mftool()
     _DB_OBJ = Connection()
 
-    table = _DB_OBJ.dynamodb.Table('account_and_user_profile')
+    table = _DB_OBJ.dynamodb.Table('fund_owned_details')
 
-    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(body.account_id)) & Key('profile').eq(body.profile) )
-    jsonData = jsonData.get('Items')[0]
-    SCHEME_CODE = jsonData.get('fund_owned') 
-
+    jsonData =  table.get_item(
+        Key={
+                'account_id': str(body.account_id),    # Partition key
+                'fund_id': str(schemeCode)   # Sort key
+            }
+    )
 
     date = pendulum.date(year=body.date['year'], month=body.date['month'], day=body.date['day'])
     id = None
 
     try:
-        if int(schemeCode) not in SCHEME_CODE:
-            raise ValueError("SCHEME_CODE_INVALID")
-        else:
-            table2 = _DB_OBJ.dynamodb.Table('fund_transactions_details')
+        if 'Item' in jsonData:
+            table2 = _DB_OBJ.dynamodb.Table('fund_transaction_details')
             response = table2.query(
-                KeyConditionExpression = Key('fund_id').eq(f"{schemeCode}"),
+                KeyConditionExpression = Key('account_id').eq(str(body.account_id)) & Key('fund_id__id').begins_with(str(schemeCode)),
                 ScanIndexForward=False,  # Set to True for ascending order, False for descending order
                 Limit = 1
                 )
             if response["Items"]:
-                id = int(response["Items"][0]["transaction_id"])+1
+                id = int(response["Items"][0]["fund_id__id"].split('__')[1])+1
+                print('line 72 last id in system', id)
             else:
                 id = 1
+        else:
+            raise ValueError("SCHEME_CODE_INVALID")
 
         if date >= pendulum.today().date():
             raise ValueError(f"FUTURE_DATED - schemeCode - {schemeCode}, date - {date}, amount - {body.installment}")
@@ -92,23 +95,30 @@ def _buy(schemeCode, body):
         units = investedAmount / original_data.loc[date.to_date_string()].nav
 
         _DB_OBJ.insertDynamodbRow(
-            tableName="fund_transactions_details",
+            tableName="fund_transaction_details",
             insertData=[{
-                "fund_id":              str(schemeCode),
-                "transaction_id":       id,
-                "UNITS_DATE":           date.strftime('%d-%m-%Y'),
-                "NUMBER_OF_UNITS":      round(units, 3),
-                "AMOUNT_INVESTED":      investedAmount,
-                "transaction_type":     str(body.type).title(),
-                "account_id":           int(body.account_id),
-                "profile":              str(body.profile)
-            },],
-            convert=True
+                "account_id":           str(body.account_id),
+                "fund_id__id":          f"{schemeCode}__{id}",
+                "unit_date":            str(date.strftime('%d-%m-%Y')),
+                "number_of_units":      str(round(units, 3)),
+                "amount_invested":      str(investedAmount),
+                "transaction_type":     str(body.type).title()
+            },]
         )
         response = {
             "status" : 200,
             "message": "UNITS UPDATED SUCCESSFULLY"
         }
+
+        sendMessageToQueue(
+            {
+                'account_id': str(body.account_id),
+                'profile': body.profile,
+                'fund_id': str(schemeCode),
+                'operation': 'buy'
+            },
+            MUTUAL_FUND_SQS_URL
+        )
         
     except Exception as e:
         response = {

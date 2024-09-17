@@ -1,0 +1,1 @@
+MUTUAL_FUND_SQS_URL = 'https://sqs.ap-south-1.amazonaws.com/701647385258/mutualFund_amount_update_queue'

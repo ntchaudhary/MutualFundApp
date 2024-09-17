@@ -3,6 +3,8 @@ from mftool import Mftool
 from boto3.dynamodb.conditions import Key
 import json, boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+from static.depositeApp.constants import DEPOSIT_SQS_URL
+from static.mutualFundApp.constants import MUTUAL_FUND_SQS_URL
 
 
 _MF = Mftool()
@@ -45,11 +47,6 @@ def lambda_handler(event, context):
         # Create a new SQS client
         sqs = boto3.client('sqs')
 
-        # URL of the SQS queue
-        queue_url_mutual_fund = 'https://sqs.ap-south-1.amazonaws.com/701647385258/mutualFund_amount_update_queue'
-        queue_url_deposit = 'https://sqs.ap-south-1.amazonaws.com/701647385258/deposit_amount_update_queue'
-        
-
         for data in items:
             if data.get("profile_status") != 'active':
                 continue
@@ -64,7 +61,7 @@ def lambda_handler(event, context):
             # Send the message
             if data.get('fund_owned',[]):
                 response_mutual_fund = sqs.send_message(
-                                        QueueUrl=queue_url_mutual_fund,
+                                        QueueUrl=MUTUAL_FUND_SQS_URL,
                                         MessageBody=messageBody,
                                         # MessageGroupId='batch'
                 )
@@ -72,12 +69,12 @@ def lambda_handler(event, context):
 
             if datetime.now().day == 1:                        
                 response_deposit = sqs.send_message(
-                                        QueueUrl=queue_url_deposit,
+                                        QueueUrl=DEPOSIT_SQS_URL,
                                         MessageBody=messageBody,
                                         # MessageGroupId='batch'
                                     )
             # Print out the response
-            print(f'Deposit Message ID: {response_deposit["MessageId"]}')
+                print(f'Deposit Message ID: {response_deposit["MessageId"]}')
             
     except NoCredentialsError:
         print("Error: No AWS credentials found.")

@@ -49,6 +49,28 @@
     <div class="row">
       {% include "/include/navbar.html" %}
     </div>
+    {%if show %}
+    {%if status != 200%}
+    <div class="row">
+      <div class="col">
+        <div class="alert alert-danger alert-dismissible fade show">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          <strong>ERROR!</strong> {{message}}.
+        </div>
+      </div>
+    </div>
+    {%endif%}
+    {%if status == 200%}
+    <div class="row">
+      <div class="col">
+        <div class="alert alert-success">
+          <a class="close" aria-current="page" href="/website/home">Go back</a>
+          <strong>{{message}}!</strong>
+        </div>
+      </div>
+    </div>
+    {%endif%}
+    {%endif%}
     <div class="row">
       <div class="col text-black bg-success">
         <br><br>
