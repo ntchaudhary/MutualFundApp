@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from boto3.dynamodb.conditions import Key
 from decimal import Decimal
 
@@ -38,3 +38,8 @@ def get_index(request: Request, user_details = Depends(auth_wrapper)):
             "years": body.keys()
         }
     )
+
+
+@cashFlowList.get("/static/chart.js")
+async def serve_js():
+    return FileResponse("website/UI/cash_flow_UI/static/chart.js")
