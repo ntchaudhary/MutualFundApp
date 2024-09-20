@@ -175,23 +175,35 @@ async def buy_post(request: Request, form_data: DepositBody = Depends(DepositBod
             }
         )
 
-@fundUpdate.delete('/{schemeCode}/sell/{transaction_id}')
-async def _delete(schemeCode: str, transaction_id: str, user_details = Depends(auth_wrapper)):
-    """Delete FD or RD entry from database"""
+@fundUpdate.delete('/{schemeCode}/sell')
+async def _delete(schemeCode: str, user_details = Depends(auth_wrapper)):
 
     _DB = Connection()
 
     try:
-        _DB.deleteDynamodbRow( 'fund_transactions_details', {'fund_id': schemeCode, 'transaction_id': Decimal(transaction_id)} )
+        _DB.deleteDynamodbRow( 'fund_transaction_details', {'account_id': str(user_details['account_id']), 'fund_id__id': schemeCode} )
 
         response = {
             "status" : 200,
             "message": "UNITS SOLD SUCCESSFULLY"
         }
+
+
+        sendMessageToQueue(
+            {
+                'account_id': str(user_details['account_id']),
+                'profile': str(user_details['profile']),
+                'fund_id': schemeCode.split('__')[0],
+                'operation': 'sell'
+            },
+            MUTUAL_FUND_SQS_URL
+        )
     except Exception as e:
         response = {
             "status": 500,
             "message": str(e)
         }
+
+    print(response)
 
     return(response)

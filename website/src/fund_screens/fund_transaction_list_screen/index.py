@@ -17,22 +17,21 @@ def _fund_transactions_list(schemeCode, user_details) -> dict:
 
     _DB_OBJ = Connection()
     table1 = _DB_OBJ.dynamodb.Table('fund_details')
-    table2 = _DB_OBJ.dynamodb.Table('fund_transactions_details')
+    table2 = _DB_OBJ.dynamodb.Table('fund_transaction_details')
 
     name = table1.query(KeyConditionExpression = Key('fund_id').eq(f"{schemeCode}") )['Items']
 
     try:
-        db_data_all = table2.query(KeyConditionExpression = Key('fund_id').eq(f"{schemeCode}") )['Items']
-        db_data = [x for x in db_data_all if str(x["account_id"])==str(user_details["account_id"]) and str(x["profile"])==str(user_details["profile"])]
+        db_data_all = table2.query(
+            KeyConditionExpression = Key('account_id').eq(str(user_details['account_id']),) & Key('fund_id__id').begins_with(str(schemeCode)),
+            ScanIndexForward=False
+        )['Items']
         
-        dataframe = pd.DataFrame(db_data)
-        dataframe['UNITS_DATE'] = pd.to_datetime( dataframe['UNITS_DATE'], infer_datetime_format=True, dayfirst=True )
-        dbResponse = dataframe.sort_values(by=['UNITS_DATE'],ascending=False).to_dict('records')
 
         response={
             "schemeCode": schemeCode,
             "schemeName": name[0].get('scheme_name'),
-            "list": dbResponse
+            "list": db_data_all
         }
     except Exception as e:
         response = {
