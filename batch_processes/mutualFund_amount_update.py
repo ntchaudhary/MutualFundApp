@@ -196,11 +196,18 @@ def lambda_handler(event, context):
 
         print(f'going for user : {fund_detail}, {operation}')
         
-        if operation == 'new':
-            update_fund_details(fund_detail)
-        elif operation == 'buy':
-            update_invested_details(fund_detail, operation)
-        elif operation == 'sell':
-            update_invested_details(fund_detail, operation)
-        elif operation == 'nav':
-            update_nav(fund_detail, body.get('fund_data'))
+        try:
+        
+            if operation == 'new':
+                update_fund_details(fund_detail)
+            elif operation == 'buy':
+                update_invested_details(fund_detail, operation)
+            elif operation == 'sell':
+                update_invested_details(fund_detail, operation)
+            elif operation == 'nav':
+                update_nav(fund_detail, body.get('fund_data'))
+        except Exception as err:
+            print("error occured ", err)
+            
+    
+    return None

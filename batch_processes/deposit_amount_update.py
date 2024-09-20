@@ -154,5 +154,10 @@ def lambda_handler(event, context):
         user_details['profile'] = body.get('profile')
 
         print(f'going for user : {user_details}')
-        reponse = asyncio.run(deposit_details(user_details))
+        try:
+            reponse = asyncio.run(deposit_details(user_details))
+        except Exception as err:
+            response = f"error occured { err}"
         print(reponse)
+    return None
+    
