@@ -43,4 +43,6 @@ class AuthHandler():
 
 
 def auth_wrapper(token: str = Cookie(None)):
+    if not token:
+        raise HTTPException(status_code=401, detail='Unauthorized Access')
     return AuthHandler().decode_token(token)

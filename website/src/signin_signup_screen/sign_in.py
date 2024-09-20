@@ -61,5 +61,12 @@ def signin_post(request: Request, auth_details: AuthDetails = Depends(AuthDetail
         token = auth_handler.encode_token(auth_details.account_id, auth_details.profile)
         response = RedirectResponse(url="/website/home", status_code=303)
         expireTime = datetime.now(timezone.utc) + timedelta(days=0, minutes=20)
-        response.set_cookie(key="token", value=token, expires=expireTime)
+        response.set_cookie(
+            key="token", 
+            value=token, 
+            expires=expireTime, 
+            httponly=True,   # Prevents JavaScript access
+            secure=True,     # Only send cookie over HTTPS
+            samesite="Strict"  # Prevent CSRF by restricting cookie to the same site
+        )
         return response
