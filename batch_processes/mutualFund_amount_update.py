@@ -1,8 +1,8 @@
 from decimal import Decimal
-from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Key, Attr
+from datetime import datetime, timedelta
 import json, boto3
-import pandas as pd
 
 dynamodb = boto3.resource('dynamodb')
 
@@ -25,10 +25,14 @@ def update_fund_details(fund_detail):
                 'account_id': str(fund_detail['account_id']),
                 'fund_id': str(fund_detail['fund_id'])
             },
-            UpdateExpression='SET nav = :nav, exit_time = :exit_time',
+            UpdateExpression='SET nav = :nav, exit_time = :exit_time, reinvest_units = :reinvest_units, reinvest_units_amount = :reinvest_units_amount, invested = :invested, total_units = :total_units',
             ExpressionAttributeValues={
                 ':nav': x.get('nav', 0),
-                ':exit_time': 9
+                ':exit_time': 9, 
+                ':reinvest_units' : 0, 
+                ':reinvest_units_amount' : 0, 
+                ':invested' : 0, 
+                ':total_units'  :0
             },
             ReturnValues='UPDATED_NEW'
         )
@@ -52,8 +56,7 @@ def update_fund_details(fund_detail):
     except Exception as e:
         print("Unexpected error occurred:", e)
 
-
-def update_invested_details(fund_detail):
+def update_invested_details(fund_detail, operation):
     try:
 
         fund_transactions = table4.query(
@@ -85,8 +88,50 @@ def update_invested_details(fund_detail):
     except Exception as e:
         print("Unexpected error occurred:", e)
 
+    if operation == 'sell':
+        update_reinvest_units(fund_detail)
+
     update_account_and_user_profile(fund_detail)
 
+def update_reinvest_units(fund_detail):
+
+    exitTime = table2.query(KeyConditionExpression = Key('fund_id').eq(f"{fund_detail['fund_id']}") )['Items']
+
+    # Calculate the date one year ago from today
+    one_year_ago = datetime.now() - timedelta(days=365*float(exitTime[0].get('exitTime', 9 )))
+    one_year_ago_str = one_year_ago.strftime('%d-%m-%Y')
+
+    try:
+        response = table4.query(
+            KeyConditionExpression = Key('account_id').eq(str(fund_detail['account_id']),) & Key('fund_id__id').begins_with(str(fund_detail['fund_id'])) ,
+            FilterExpression=Attr('unit_date').lt(one_year_ago_str)
+        )['Items']
+
+        units = 0
+        amount = 0
+
+        for row in response:
+            units+= float(row['number_of_units'])
+            amount+= float(row['amount_invested'])
+
+
+        response_fund_owned = table3.update_item(
+                Key = {
+                    'account_id': str(fund_detail['account_id']),
+                    'fund_id': str(fund_detail['fund_id'])
+                },
+                UpdateExpression='SET reinvest_units = :reinvest_units, reinvest_units_amount = :reinvest_units_amount',
+                ExpressionAttributeValues={
+                    ':reinvest_units': str(units),
+                    'reinvest_units_amount': str(amount)
+                },
+                ReturnValues='UPDATED_NEW'
+            )
+        
+        print(' line 122 fund owned updated from update_reinvest_units function', response_fund_owned['Attributes'])
+        
+    except Exception as e:
+        print("Unexpected error occurred:", e)
 
 def update_account_and_user_profile(user_details):
     all_fund_transactions = table3.query(
@@ -108,12 +153,41 @@ def update_account_and_user_profile(user_details):
 
     print('Account and user table update', response['Attributes'])
 
+def update_nav(fund_detail, fund_data):
+    per_account_funds = table3.query(
+            KeyConditionExpression=Key('account_id').eq(str(fund_detail['account_id'])),
+            ProjectionExpression = 'fund_id'
+        )['Items']
+    
+    for row in per_account_funds:
+        
+        response_fund_owned = table3.update_item(
+                Key = {
+                    'account_id': str(fund_detail['account_id']),
+                    'fund_id': str(row['fund_id'])
+                },
+                UpdateExpression='SET nav = :nav',
+                ExpressionAttributeValues={
+                    ':nav': fund_data.get(row['fund_id'],0)
+                },
+                ReturnValues='UPDATED_NEW'
+            )
+        
+        if datetime.now().day == 1:
+            fund_detail['fund_id'] = row['fund_id']
+            update_reinvest_units(fund_detail)
+        
+        print('fund owned updated from update_nav function', response_fund_owned['Attributes'])
+
+    update_account_and_user_profile(fund_detail)
+
 
 def lambda_handler(event, context):
     # TODO implement
     fund_detail = dict()
     for message in event.get('Records'):
         body = json.loads(message.get('body'))
+        print('body received',body)
         fund_detail['account_id'] = body.get('account_id')
         fund_detail['fund_id'] = body.get('fund_id')
         fund_detail['profile'] = body.get('profile')
@@ -125,6 +199,8 @@ def lambda_handler(event, context):
         if operation == 'new':
             update_fund_details(fund_detail)
         elif operation == 'buy':
-            update_invested_details(fund_detail)
-
-        
+            update_invested_details(fund_detail, operation)
+        elif operation == 'sell':
+            update_invested_details(fund_detail, operation)
+        elif operation == 'nav':
+            update_nav(fund_detail, body.get('fund_data'))
