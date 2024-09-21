@@ -101,7 +101,7 @@ def _buy(schemeCode, body):
                 "fund_id__id":          f"{schemeCode}__{str(id).zfill(4)}",
                 "unit_date":            str(date.strftime('%d-%m-%Y')),
                 "number_of_units":      str(round(units, 3)),
-                "amount_invested":      str(investedAmount),
+                "amount_invested":      str(body.installment),
                 "transaction_type":     str(body.type).title()
             },]
         )
