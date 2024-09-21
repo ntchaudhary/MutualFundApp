@@ -1,12 +1,10 @@
-from decimal import Decimal
 from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
 from boto3.dynamodb.conditions import Key
 
-import pandas as pd
-import asyncio, pendulum
+import asyncio
 
 from database.dbSetupAndConnection import Connection
 from utilities.utils import calculateSumFromListOFDict, convertResponse
