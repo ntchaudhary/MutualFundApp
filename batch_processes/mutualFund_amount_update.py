@@ -99,20 +99,31 @@ def update_reinvest_units(fund_detail):
 
     # Calculate the date one year ago from today
     one_year_ago = datetime.now() - timedelta(days=365*float(exitTime[0].get('exitTime', 9 )))
-    one_year_ago_str = one_year_ago.strftime('%d-%m-%Y')
 
     try:
         response = table4.query(
             KeyConditionExpression = Key('account_id').eq(str(fund_detail['account_id']),) & Key('fund_id__id').begins_with(str(fund_detail['fund_id'])) ,
-            FilterExpression=Attr('unit_date').lt(one_year_ago_str)
+            ScanIndexForward=True
         )['Items']
 
         units = 0
         amount = 0
 
+        breakLoop = 0
+
         for row in response:
-            units+= float(row['number_of_units'])
-            amount+= float(row['amount_invested'])
+
+            unit_date_str = row['unit_date']
+            unit_date = datetime.strptime(unit_date_str, '%d-%m-%Y')
+            
+            if unit_date < one_year_ago:
+                units+= float(row['number_of_units'])
+                amount+= float(row['amount_invested'])
+            else:
+                breakLoop+=1
+
+                if breakLoop > 9:
+                    break
 
 
         response_fund_owned = table3.update_item(
@@ -211,3 +222,4 @@ def lambda_handler(event, context):
             
     
     return None
+
