@@ -123,7 +123,7 @@ def update_reinvest_units(fund_detail):
                 UpdateExpression='SET reinvest_units = :reinvest_units, reinvest_units_amount = :reinvest_units_amount',
                 ExpressionAttributeValues={
                     ':reinvest_units': str(units),
-                    'reinvest_units_amount': str(amount)
+                    ':reinvest_units_amount': str(amount)
                 },
                 ReturnValues='UPDATED_NEW'
             )

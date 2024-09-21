@@ -81,7 +81,7 @@ def _buy(schemeCode, body):
 
         original_data = _MF.get_scheme_historical_nav( schemeCode, as_Dataframe=True )
 
-        original_data.index = pd.to_datetime(original_data.index, infer_datetime_format=True, dayfirst=True)
+        original_data.index = pd.to_datetime(original_data.index, dayfirst=True)
         original_data['nav'] = pd.to_numeric(original_data['nav'], downcast='float')
 
         while True:
@@ -98,7 +98,7 @@ def _buy(schemeCode, body):
             tableName="fund_transaction_details",
             insertData=[{
                 "account_id":           str(body.account_id),
-                "fund_id__id":          f"{schemeCode}__{id}",
+                "fund_id__id":          f"{schemeCode}__{str(id).zfill(4)}",
                 "unit_date":            str(date.strftime('%d-%m-%Y')),
                 "number_of_units":      str(round(units, 3)),
                 "amount_invested":      str(investedAmount),
