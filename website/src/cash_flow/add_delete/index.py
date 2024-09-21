@@ -166,9 +166,11 @@ def post_index(request: Request, form_data: Income_Expense_Body = Depends(Income
 
     start = pendulum.parse(form_data.expense_date, strict=False)
 
+    print('169 data received from page ', form_data.__dict__)
+
     body = {
         "category": form_data.category if form_data.category != 'None of the mentioned' else form_data.other_category,
-        "sub_category": form_data.sub_category if form_data.category != 'None of the mentioned' and form_data.other_subcategory is None else form_data.other_subcategory,
+        "sub_category": form_data.sub_category if form_data.category != 'None of the mentioned' and form_data.other_subcategory == '' else form_data.other_subcategory,
         "note": form_data.note,
         "amount": form_data.amount,
         "income_expense": form_data.income_expense,
