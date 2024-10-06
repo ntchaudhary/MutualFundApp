@@ -61,7 +61,7 @@ def signin_post(request: Request, auth_details: AuthDetails = Depends(AuthDetail
         token = auth_handler.encode_token(auth_details.account_id, auth_details.profile, request._headers.get('user-agent'), request.scope.get('client')[0])
         refresh_token = auth_handler.encode_refresh_token(auth_details.account_id, auth_details.profile, request._headers.get('user-agent'), request.scope.get('client')[0])
         response = RedirectResponse(url="/website/home", status_code=303)
-        expireTime = datetime.now(timezone.utc) + timedelta(days=0, minutes=10)
+        expireTime = datetime.now(timezone.utc) + timedelta(days=0, minutes=59)
         response.set_cookie(
             key="token", 
             value=token, 
@@ -73,7 +73,7 @@ def signin_post(request: Request, auth_details: AuthDetails = Depends(AuthDetail
         response.set_cookie(
             key="refresh_token", 
             value=refresh_token, 
-            expires=datetime.now(timezone.utc) + timedelta(days=0, minutes=60), 
+            expires=datetime.now(timezone.utc) + timedelta(days=0, minutes=59), 
             httponly=True,   # Prevents JavaScript access
             secure=True,     # Only send cookie over HTTPS
             samesite="Strict"  # Prevent CSRF by restricting cookie to the same site

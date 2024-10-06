@@ -215,11 +215,14 @@ async def post_index(request: Request, form_data: DepositBody = Depends(DepositB
 
 @depositAdd.delete('/delete/{fdID}')
 def _delete(fdID: str, user_details = Depends(auth_wrapper)):
-    """Delete FD or RD entry from database"""
+    """Delete FD or RD entry from database""" 
+    
+    print(user_details)
 
     try:
         _DB.deleteDynamodbRow( 'deposits', {'account_id': decimal.Decimal(user_details['account_id']),'id': decimal.Decimal(fdID)} )
 
+        print(user_details)
         sendMessageToQueue(user_details,DEPOSIT_SQS_URL)
 
         response = {

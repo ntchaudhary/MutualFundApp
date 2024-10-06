@@ -18,7 +18,7 @@ class AuthHandler():
         if hashlib.sha256(plain_password.encode('utf-8')).hexdigest() == hashed_password:
             return True
         else:
-            False
+            False 
 
     def encode_token(self, account_id, profile, user_agent=None, user_ip=None):
         payload = {
@@ -66,7 +66,7 @@ def auth_wrapper(request: Request,response: Response, token: str = Cookie(None),
     try:
         return AuthHandler().decode_token(token, request)
     except HTTPException as e:
-        print(e)
+        print('here in auth.py  line 69   ',e)
         if e.detail == 'Session has expired' and refresh_token:
             # If access token is expired, try to refresh it using the refresh token
             try:
@@ -75,7 +75,8 @@ def auth_wrapper(request: Request,response: Response, token: str = Cookie(None),
                 new_access_token = AuthHandler().encode_token(refresh_data['account_id'], refresh_data['profile'], request._headers.get('user-agent'), request.scope.get('client')[0])
                 response.set_cookie(key="token", value=new_access_token, expires=datetime.now(timezone.utc) + timedelta(days=0, minutes=10), httponly=True, secure=True, samesite="Lax")
                 return refresh_data  # Return the refreshed token data
-            except HTTPException:
+            except HTTPException as err:
+                print(err)
                 # If refresh token is also expired or invalid, redirect to login
                 raise TokenExpiredException(status_code=401, detail="Token expired, login required")
         else:
