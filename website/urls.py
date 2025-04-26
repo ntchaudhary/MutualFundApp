@@ -19,6 +19,8 @@ from .src.cash_flow.add_delete.index import cashFlowAddDelete
 from .src.cash_flow.list.index import cashFlowList
 # from .src.cash_flow.update.index import
 
+from .src.nps.nps_add_screen.index import addNPS
+
 
 website = APIRouter()
 
@@ -41,3 +43,5 @@ website.include_router(depositAdd, prefix=_BASE_ENDPOINT)
 
 website.include_router(cashFlowAddDelete, prefix="/website/cashFlow")
 website.include_router(cashFlowList, prefix="/website/cashFlow")
+
+website.include_router(addNPS, prefix="/website/nps")

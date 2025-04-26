@@ -75,6 +75,13 @@ active_data_mapping = {
         "details_url": "/website/deposit-list",
         "button_text": "Add New"
     },
+    'NPS': {
+        "type": 'National Pension Scheme',
+        "amount": 0,
+        "add_new_url": "/website/nps/add",
+        "details_url": "#",
+        "button_text": "Add New"
+    },
     'Cash Flow': {
         "type": 'Cash Flow',
         "add_new_url": "/website/cashFlow/add",
