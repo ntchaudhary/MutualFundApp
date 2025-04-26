@@ -3,6 +3,7 @@ from mftool import Mftool
 from boto3.dynamodb.conditions import Key
 import json, boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+import requests
 from static.depositeApp.constants import DEPOSIT_SQS_URL
 from static.mutualFundApp.constants import MUTUAL_FUND_SQS_URL
 
@@ -26,10 +27,24 @@ def lambda_handler(event, context):
     fund_data = dict()
 
     for data in items:
-        x = _MF.get_scheme_quote(data['fund_id'])
-        x['fund_id'] = x['scheme_code']
-        x['exitTime'] = int(data.get('exitTime', 9))
-        del x['scheme_code']
+
+        if 'mf' in data['fund_id']:
+            x = _MF.get_scheme_quote(data['fund_id'].split('__')[1])
+            x['fund_id'] = data['fund_id']
+            x['exitTime'] = int(data.get('exitTime', 9))
+            del x['scheme_code']
+
+        if 'nps' in data['fund_id']:
+            nps = {}
+            nps = json.loads(requests.get(f"https://npsnav.in/api/{data['fund_id'].split('__')[1]}"))
+            x = {
+            "fund_id": nps['Scheme Code'],
+            "exitTime": 99,
+            "last_updated": nps['Last Updated'],
+            "nav": nps['NAV'],
+            "scheme_name": nps['Scheme Name']
+            }
+
         x = json.loads(json.dumps(x))
         response = table1.put_item(Item=x)
         fund_data[x['fund_id']] = x['nav']
