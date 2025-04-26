@@ -2,7 +2,6 @@ from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from decimal import Decimal
 from botocore.exceptions import ClientError
 from static.mutualFundApp.constants import MUTUAL_FUND_SQS_URL
 from utilities.auth import auth_wrapper

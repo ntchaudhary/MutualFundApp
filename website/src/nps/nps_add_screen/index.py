@@ -1,16 +1,13 @@
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from pydantic import BaseModel
-from typing import Optional
 from decimal import Decimal
-import pendulum, json
 
 from database.dbSetupAndConnection import Connection
 from static.mutualFundApp.constants import MUTUAL_FUND_SQS_URL
-from utilities.utils import MyObject, sendMessageToQueue
+from utilities.utils import sendMessageToQueue
 from utilities.auth import auth_wrapper
 
 addNPS = APIRouter()
