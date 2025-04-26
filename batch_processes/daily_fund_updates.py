@@ -38,7 +38,7 @@ def lambda_handler(event, context):
             nps = {}
             nps = json.loads(requests.get(f"https://npsnav.in/api/{data['fund_id'].split('__')[1]}"))
             x = {
-            "fund_id": nps['Scheme Code'],
+            "fund_id": data['fund_id'],
             "exitTime": 99,
             "last_updated": nps['Last Updated'],
             "nav": nps['NAV'],

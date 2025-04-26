@@ -180,7 +180,7 @@ def post_index(request: Request, form_data: add_nps_body = Depends(add_nps_body.
         sendMessageToQueue(
             {
                 'account_id':user_details['account_id'],
-                'fund_id': form_data.scheme_code,
+                'fund_id': f"nps__{form_data.scheme_code}",
                 'operation': 'new'
             },
             MUTUAL_FUND_SQS_URL

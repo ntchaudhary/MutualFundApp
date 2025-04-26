@@ -3,6 +3,7 @@ from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime, timedelta
 import json, boto3
+import requests
 
 dynamodb = boto3.resource('dynamodb')
 
@@ -15,10 +16,23 @@ def update_fund_details(fund_detail):
     from mftool import Mftool
 
     _MF = Mftool()
+    x=dict()
 
     try:
+        if 'mf' in fund_detail['fund_id']:
+            x = _MF.get_scheme_quote(fund_detail['fund_id'].split('__')[1])
+            del x['scheme_code']
 
-        x = _MF.get_scheme_quote(fund_detail['fund_id']) 
+        if 'nps' in fund_detail['fund_id']:
+            nps = {}
+            nps = json.loads(requests.get(f"https://npsnav.in/api/{fund_detail['fund_id'].split('__')[1]}"))
+            x = {
+            "fund_id": fund_detail['fund_id'],
+            "exitTime": 99,
+            "last_updated": nps['Last Updated'],
+            "nav": nps['NAV'],
+            "scheme_name": nps['Scheme Name']
+            }
 
         response_fund_owned = table3.update_item(
             Key = {
@@ -28,7 +42,7 @@ def update_fund_details(fund_detail):
             UpdateExpression='SET nav = :nav, exit_time = :exit_time, reinvest_units = :reinvest_units, reinvest_units_amount = :reinvest_units_amount, invested = :invested, total_units = :total_units',
             ExpressionAttributeValues={
                 ':nav': x.get('nav', 0),
-                ':exit_time': 9, 
+                ':exit_time': 99, 
                 ':reinvest_units' : 0, 
                 ':reinvest_units_amount' : 0, 
                 ':invested' : 0, 
@@ -39,9 +53,8 @@ def update_fund_details(fund_detail):
 
         print('fund owned update', response_fund_owned['Attributes'])
 
-        x['fund_id'] = x['scheme_code']
-        del x['scheme_code']
-        x['exitTime'] = 9
+        x['fund_id'] = fund_detail['fund_id']
+        x['exitTime'] = 99
         x = json.loads(json.dumps(x))
 
         table2.put_item(Item=x,ConditionExpression = 'attribute_not_exists(fund_id)')

@@ -72,7 +72,7 @@ def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_f
         table.put_item(
               Item= {
                    "account_id": str(user_details['account_id']),
-                   "fund_id": str(form_data.key),
+                   "fund_id": f"mf__{form_data.key}",
                    "scheme_name": jsonData11[form_data.key]
               },
               ConditionExpression = 'attribute_not_exists(account_id) AND attribute_not_exists(fund_id)'
@@ -85,7 +85,7 @@ def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_f
         sendMessageToQueue(
             {
                 'account_id':user_details['account_id'],
-                'fund_id': form_data.key,
+                'fund_id': f"mf__{form_data.key}",
                 'operation': 'new'
             },
             MUTUAL_FUND_SQS_URL
