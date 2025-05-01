@@ -10,3 +10,4 @@ openpyxl
 pandas
 mangum
 PyJWT
+boto3

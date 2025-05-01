@@ -20,7 +20,6 @@ STAMP_DUTY_PERCENT = 0.005
 
 
 class DepositBody(BaseModel):
-    type: str
     installment: Optional[float]
     units: Optional[float]
     purchaseDate: str
@@ -28,13 +27,11 @@ class DepositBody(BaseModel):
     @classmethod
     def as_form(
         cls,
-        gridRadios: str = Form(...),
         installment: float = Form(...),
         units: float = Form(...),
         purchaseDate: str = Form(...)
     ):
         return cls(
-            type = gridRadios,
             installment=installment,
             units=units,
             purchaseDate=purchaseDate
@@ -44,8 +41,7 @@ class DepositBody(BaseModel):
 def _buy(schemeCode, body):
     """calculating the monthly NAV units purchased and then inserting it into DataBase with date of nav and amount invested
     """
-    from mftool import Mftool
-    _MF = Mftool()
+
     _DB_OBJ = Connection()
 
     table = _DB_OBJ.dynamodb.Table('fund_owned_details')
@@ -79,20 +75,21 @@ def _buy(schemeCode, body):
         if date >= pendulum.today().date():
             raise ValueError(f"FUTURE_DATED - schemeCode - {schemeCode}, date - {date}, amount - {body.installment}")
 
-        original_data = _MF.get_scheme_historical_nav( schemeCode, as_Dataframe=True )
+        if body.units == 0:
+            from mftool import Mftool
+            _MF = Mftool()
+            original_data = _MF.get_scheme_historical_nav( schemeCode, as_Dataframe=True )
 
-        original_data.index = pd.to_datetime(original_data.index, dayfirst=True)
-        original_data['nav'] = pd.to_numeric(original_data['nav'], downcast='float')
+            original_data.index = pd.to_datetime(original_data.index, dayfirst=True)
+            original_data['nav'] = pd.to_numeric(original_data['nav'], downcast='float')
 
-        while True:
-            if original_data.index.__contains__(date.to_date_string()):
-                break
-            else:
-                date = date.add(days=1)
 
         investedAmount = body.installment - (body.installment * STAMP_DUTY_PERCENT / 100)
 
-        units = investedAmount / original_data.loc[date.to_date_string()].nav
+        if body.units == 0:
+            units = investedAmount / original_data.loc[date.to_date_string()].nav
+        else:
+            units = body.units
 
         _DB_OBJ.insertDynamodbRow(
             tableName="fund_transaction_details",
@@ -102,7 +99,7 @@ def _buy(schemeCode, body):
                 "unit_date":            str(date.strftime('%d-%m-%Y')),
                 "number_of_units":      str(round(units, 3)),
                 "amount_invested":      str(body.installment),
-                "transaction_type":     str(body.type).title()
+                "transaction_type":     "Buy"
             },]
         )
         response = {
@@ -146,7 +143,6 @@ async def buy_post(request: Request, form_data: DepositBody = Depends(DepositBod
     purchaseDate = pendulum.from_format(form_data.purchaseDate, "YYYY-MM-DD")
 
     body_dict = {
-        "type": form_data.type,
         "account_id": user_details["account_id"],
         "profile": user_details["profile"],
         "installment": form_data.installment,
@@ -160,10 +156,8 @@ async def buy_post(request: Request, form_data: DepositBody = Depends(DepositBod
 
     body = MyObject(**body_dict)
 
-    if form_data.type == 'buy':
-        response = _buy(request.path_params.get('schemeCode'), body) # requests.post(f"http://127.0.0.1:8000/mutual-fund/fund-transactions/{request.path_params.get('schemeCode')}/buy", json=body)
-    elif form_data.type == 'sell':
-        pass
+    response = _buy(request.path_params.get('schemeCode'), body) # requests.post(f"http://127.0.0.1:8000/mutual-fund/fund-transactions/{request.path_params.get('schemeCode')}/buy", json=body)
+    
 
     return templates.TemplateResponse(
             "/fund_UI/fund_update.html", 
