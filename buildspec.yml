@@ -11,7 +11,7 @@ phases:
   pre_build:
     commands:
       - echo Checking if the Lambda function exists...
-      - FUNCTION_NAME=InvestmentAPI_test
+      - FUNCTION_NAME=InvestmentAPI
       - if aws lambda get-function --function-name $FUNCTION_NAME; then
           echo "Function exists, updating...";
         else
