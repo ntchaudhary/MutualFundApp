@@ -7,7 +7,6 @@ phases:
     commands:
       - echo Installing AWS CLI...
       - pip install awscli  # Ensure AWS CLI is installed
-      - pip install -r requirements.txt
 
   pre_build:
     commands:
@@ -21,6 +20,9 @@ phases:
 
   build:
     commands:
+      - echo Installing Python dependencies...
+      - mkdir -p dependencies  # Create a directory for dependencies
+      - pip install -r requirements.txt -t ./dependencies  # Install dependencies to the dependencies directory
       - echo Building the Lambda function package...
       - zip -r function.zip *  # Create a zip file of your Lambda function code
 
