@@ -26,7 +26,7 @@ phases:
   post_build:
     commands:
       - echo Deploying the Lambda function...
-      - aws lambda create-function --function-name $FUNCTION_NAME --zip-file fileb://function.zip --handler main.handler --runtime python3.12 --arn:aws:iam::701647385258:role/service-role/InvestmentAPI-role-xvt4qa8j;
+      - aws lambda create-function --function-name $FUNCTION_NAME --zip-file fileb://function.zip --handler main.handler --runtime python3.12 --role arn:aws:iam::701647385258:role/service-role/InvestmentAPI-role-xvt4qa8j;
 
 artifacts:
   files:
