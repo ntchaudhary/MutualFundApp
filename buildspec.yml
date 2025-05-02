@@ -27,7 +27,7 @@ phases:
     commands:
       - echo Deploying the Lambda function...
       - if aws lambda get-function --function-name $FUNCTION_NAME; then
-          aws lambda update-function-code --function-name $FUNCTION_NAME --zip-file fileb://function.zip;
+          aws lambda update-function-code --function-name $FUNCTION_NAME --zip-file fileb://function.zip --handler main.handler --runtime python3.12 --arn:aws:iam::701647385258:role/service-role/InvestmentAPI-role-xvt4qa8j;
         else
           aws lambda create-function --function-name $FUNCTION_NAME --zip-file fileb://function.zip --handler main.handler --runtime python3.12 --arn:aws:iam::701647385258:role/service-role/InvestmentAPI-role-xvt4qa8j;
         fi
