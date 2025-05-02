@@ -20,9 +20,6 @@ phases:
 
   build:
     commands:
-      - echo Installing Python dependencies...
-      - mkdir -p dependencies  # Create a directory for dependencies
-      - pip install -r requirements.txt -t ./dependencies  # Install dependencies to the dependencies directory
       - echo Building the Lambda function package...
       - zip -r function.zip *  # Create a zip file of your Lambda function code
 
@@ -32,7 +29,7 @@ phases:
       - if aws lambda get-function --function-name $FUNCTION_NAME; then
           aws lambda update-function-code --function-name $FUNCTION_NAME --zip-file fileb://function.zip;
         else
-          aws lambda create-function --function-name $FUNCTION_NAME --zip-file fileb://function.zip --handler main.handler --runtime python3.12 --role arn:aws:iam::701647385258:role/service-role/InvestmentAPI-role-xvt4qa8j;
+          aws lambda create-function --function-name $FUNCTION_NAME --zip-file fileb://function.zip --handler main.handler --runtime python3.12 --role arn:aws:iam::701647385258:role/service-role/InvestmentAPI-role-xvt4qa8j --layers arn:aws:lambda:ap-south-1:701647385258:layer:investmentAPILayer:2,arn:aws:lambda:ap-south-1:336392948345:layer:AWSSDKPandas-Python312:13;
         fi
 
 artifacts:
