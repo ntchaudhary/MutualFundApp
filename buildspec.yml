@@ -1,0 +1,37 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.12  # Change this to the Python version you are using
+    commands:
+      - echo Installing AWS CLI...
+      - pip install awscli  # Ensure AWS CLI is installed
+
+  pre_build:
+    commands:
+      - echo Checking if the Lambda function exists...
+      - FUNCTION_NAME=InvestmentAPI_test
+      - if aws lambda get-function --function-name $FUNCTION_NAME; then
+          echo "Function exists, updating...";
+        else
+          echo "Function does not exist, creating...";
+        fi
+
+  build:
+    commands:
+      - echo Building the Lambda function package...
+      - zip -r function.zip src/*  # Create a zip file of your Lambda function code
+
+  post_build:
+    commands:
+      - echo Deploying the Lambda function...
+      - if aws lambda get-function --function-name $FUNCTION_NAME; then
+          aws lambda update-function-code --function-name $FUNCTION_NAME --zip-file fileb://function.zip;
+        else
+          aws lambda create-function --function-name $FUNCTION_NAME --zip-file fileb://function.zip --handler main.handler --runtime python3.12 --arn:aws:iam::701647385258:role/service-role/InvestmentAPI-role-xvt4qa8j;
+        fi
+
+artifacts:
+  files:
+    - function.zip
