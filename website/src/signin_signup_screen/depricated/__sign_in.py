@@ -35,7 +35,7 @@ def signin_post(request: Request, auth_details: AuthDetails = Depends(AuthDetail
 
     auth_details.profile = str(auth_details.profile).lower()
 
-    response = table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(auth_details.account_id)) & Key('profile').eq(auth_details.profile.lower()) )
+    response = table.query(  KeyConditionExpression = Key('account_id').eq(str(auth_details.account_id)) & Key('profile').eq(auth_details.profile.lower()) )
 
     if response['ScannedCount'] == 0:
         return templates.TemplateResponse(

@@ -22,7 +22,7 @@ def get_index(request: Request, user_details = Depends(auth_wrapper)):
     table = _DB.dynamodb.Table('income_expenses')
 
     response = table.query(
-        KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])),
+        KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])),
         ScanIndexForward=False,  # Set to True for ascending order, False for descending order
         # Limit = 5
     )['Items']

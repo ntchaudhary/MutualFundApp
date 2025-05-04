@@ -61,7 +61,7 @@ def _add(body, user_details):
             raise Exception("Future Dated Transaction")
 
         response = table.query(
-            KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])),
+            KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])),
             ScanIndexForward=False,  # Set to True for ascending order, False for descending order
             Limit = 1
         )
@@ -75,7 +75,7 @@ def _add(body, user_details):
             id = expense_date.format('YYYYMMDD0000')
 
         insert_json = {
-            "account_id":       Decimal(user_details['account_id']),
+            "account_id":       str(user_details['account_id']),
             "transaction_id":   Decimal(id),
             "profile":          user_details["profile"],
             "expense_date":     expense_date.for_json(),
@@ -191,7 +191,7 @@ def post_index(request: Request, form_data: Income_Expense_Body = Depends(Income
 
     # updating the bank balance when a transaction is done
     table = _DB.dynamodb.Table('account_and_user_profile')
-    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
+    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
     jsonData = jsonData.get('Items')
 
     if form_data.income_expense == 'Expense':
@@ -224,7 +224,7 @@ def _delete(transaction_id: str, user_details = Depends(auth_wrapper)):
     """Delete FD or RD entry from database"""
 
     try:
-        _DB.deleteDynamodbRow( 'income_expenses', {'account_id': Decimal(user_details['account_id']),'transaction_id': Decimal(transaction_id)} )
+        _DB.deleteDynamodbRow( 'income_expenses', {'account_id': str(user_details['account_id']),'transaction_id': Decimal(transaction_id)} )
 
         response = {
             "status" : 200,

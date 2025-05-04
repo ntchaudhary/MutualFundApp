@@ -167,7 +167,7 @@ def update_account_and_user_profile(user_details):
         total_amount += float(row['total_units']) * float(row['nav'])
 
     response = table.update_item (
-        Key={'account_id': Decimal(user_details['account_id']), 'profile': user_details['profile']},
+        Key={'account_id': str(user_details['account_id']), 'profile': user_details['profile']},
         UpdateExpression='SET current_fund_amount = :current_fund_amount',           
         ExpressionAttributeValues={
             ':current_fund_amount': str(round(total_amount))

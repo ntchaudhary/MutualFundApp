@@ -26,7 +26,7 @@ async def get_total_balance(user_details):
     table = _DB_OBJ.dynamodb.Table(table_name)
 
     await asyncio.sleep(0.000001)
-    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
+    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
     await asyncio.sleep(0.000001)
     jsonData = jsonData.get('Items')[0]
 

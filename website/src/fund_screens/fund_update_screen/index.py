@@ -182,12 +182,14 @@ async def _delete(schemeCode: str, user_details = Depends(auth_wrapper)):
             "message": "UNITS SOLD SUCCESSFULLY"
         }
 
+        fund_id = schemeCode.split('__')
+
 
         sendMessageToQueue(
             {
                 'account_id': str(user_details['account_id']),
                 'profile': str(user_details['profile']),
-                'fund_id': schemeCode.split('__')[0],
+                'fund_id': f"{fund_id[0]}__{fund_id[1]}",
                 'operation': 'sell'
             },
             MUTUAL_FUND_SQS_URL
