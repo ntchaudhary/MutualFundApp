@@ -9,7 +9,7 @@ from utilities.utils import MyObject, sendMessageToQueue
 from utilities.auth import auth_wrapper
 from static.depositeApp.constants import DEPOSIT_SQS_URL
 
-import pendulum, boto3, json, decimal
+import pendulum, decimal, traceback
 
 
 depositAdd = APIRouter()
@@ -66,7 +66,7 @@ def _add(body, user_details):
 
     try:
         response = table.query(
-            KeyConditionExpression = Key('account_id').eq(decimal.Decimal(user_details['account_id'])),
+            KeyConditionExpression = Key('account_id').eq((user_details['account_id'])),
             ScanIndexForward=False,  # Set to True for ascending order, False for descending order
             Limit = 1
         )
@@ -94,7 +94,7 @@ def _add(body, user_details):
                 "note":             body.note,
                 "account_number":   body.account_number,
                 "bank":             body.bank,
-                "account_id":       decimal.Decimal(user_details['account_id']), 	                                                                # number
+                "account_id":       str(user_details['account_id']), 	                                                                # number
                 "frequency":        decimal.Decimal(body.compound_frequency),			                                                            # number
                 "id":               id,					                                                                                            # number
                 "maturity_date":    maturity_date.for_json(),		                                                                                # string	pendulum.for_json()
@@ -122,6 +122,7 @@ def _add(body, user_details):
             "message": "DEPOSIT ADDED SUCCESSFULLY"
         }
     except Exception as e:
+        print(traceback.format_exc())
         response = {
             "status": 500,
             "message": str(e)
@@ -220,7 +221,7 @@ def _delete(fdID: str, user_details = Depends(auth_wrapper)):
     print(user_details)
 
     try:
-        _DB.deleteDynamodbRow( 'deposits', {'account_id': decimal.Decimal(user_details['account_id']),'id': decimal.Decimal(fdID)} )
+        _DB.deleteDynamodbRow( 'deposits', {'account_id': (user_details['account_id']),'id': decimal.Decimal(fdID)} )
 
         print(user_details)
         sendMessageToQueue(user_details,DEPOSIT_SQS_URL)
