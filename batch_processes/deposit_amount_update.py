@@ -24,7 +24,7 @@ async def deposit_details(user_details):
 
     try:
         await asyncio.sleep(0.000001)
-        values = table2.query(  KeyConditionExpression = Key('account_id').eq(decimal.Decimal(user_details['account_id'])) )
+        values = table2.query(  KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])) )
         await asyncio.sleep(0.000001)
 
         if values['Items']:
@@ -77,7 +77,7 @@ async def deposit_details(user_details):
                     try:
                         await asyncio.sleep(0.000001)
                         response_interest = table2.update_item (
-                            Key = {'account_id': decimal.Decimal(value['account_id']), 'id': decimal.Decimal(value['id'])},
+                            Key = {'account_id': str(value['account_id']), 'id': decimal.Decimal(value['id'])},
                             UpdateExpression='SET interest_earned = :interest_earned',           
                             ExpressionAttributeValues={
                                 ':interest_earned': decimal.Decimal(str(round(accrued_interest,2)))
@@ -102,7 +102,7 @@ async def deposit_details(user_details):
                     try:
                         await asyncio.sleep(0.000001)
                         response_interest = table2.update_item (
-                            Key = {'account_id': decimal.Decimal(value['account_id']), 'id': decimal.Decimal(value['id'])},
+                            Key = {'account_id': str(value['account_id']), 'id': decimal.Decimal(value['id'])},
                             UpdateExpression='SET interest_earned = :interest_earned, principle = :principle',           
                             ExpressionAttributeValues={
                                 ':interest_earned': decimal.Decimal(str(round(accrued_interest,2))),
@@ -121,7 +121,7 @@ async def deposit_details(user_details):
         print(response)        
     
         response = table.update_item (
-            Key={'account_id': decimal.Decimal(user_details['account_id']), 'profile': user_details['profile']},    # Specify the primary key
+            Key={'account_id': str(user_details['account_id']), 'profile': user_details['profile']},    # Specify the primary key
             UpdateExpression='SET current_deposit_amount = :current_deposit_amount',                                # Update expression
             ExpressionAttributeValues={
                 ':current_deposit_amount': decimal.Decimal(str(totalAmount))                                        # New value for the email attribute
