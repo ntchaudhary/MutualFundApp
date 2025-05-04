@@ -6,7 +6,7 @@ from decimal import Decimal
 import random
 
 from utilities.auth import AuthHandler
-from utilities.userSchema import AuthDetails
+from utilities.__userSchema import AuthDetails
 from database.dbSetupAndConnection import Connection
 
 
