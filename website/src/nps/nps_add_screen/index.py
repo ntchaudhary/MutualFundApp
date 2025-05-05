@@ -220,7 +220,7 @@ def _delete(transaction_id: str, user_details = Depends(auth_wrapper)):
     """Delete FD or RD entry from database"""
 
     try:
-        _DB.deleteDynamodbRow( 'income_expenses', {'account_id': Decimal(user_details['account_id']),'transaction_id': Decimal(transaction_id)} )
+        _DB.deleteDynamodbRow( 'income_expenses', {'account_id': str(user_details['account_id']),'transaction_id': Decimal(transaction_id)} )
 
         response = {
             "status" : 200,

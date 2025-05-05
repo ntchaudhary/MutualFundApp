@@ -47,7 +47,7 @@ def get_index(request: Request, user_details = Depends(auth_wrapper)):
 @changePassword.post('/change-password', response_class=HTMLResponse)
 def post_index(request: Request, form_data: ChangePasswordBody = Depends(ChangePasswordBody.as_form), user_details = Depends(auth_wrapper)):
 
-    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(Decimal(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
+    jsonData =  table.query(  KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])) & Key('profile').eq(user_details['profile']) )
     jsonData = jsonData.get('Items')
 
     old_pass = form_data.old_password

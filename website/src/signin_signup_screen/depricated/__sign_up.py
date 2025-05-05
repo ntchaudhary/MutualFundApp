@@ -6,7 +6,7 @@ from decimal import Decimal
 import random
 
 from utilities.auth import AuthHandler
-from utilities.userSchema import AuthDetails
+from utilities.__userSchema import AuthDetails
 from database.dbSetupAndConnection import Connection
 
 
@@ -48,7 +48,7 @@ def signup_post(request: Request, auth_details: AuthDetails = Depends(AuthDetail
     hashed_password = auth_handler.get_password_hash(auth_details.password)
 
     x = {
-        "account_id": Decimal(auth_details.account_id),
+        "account_id": str(auth_details.account_id),
         "profile": str(auth_details.profile).lower(),
         "password_hash": hashed_password,
         "bank_balance": Decimal("0"),
