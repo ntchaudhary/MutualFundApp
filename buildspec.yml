@@ -12,6 +12,9 @@ phases:
     commands:
       - echo Checking if the Lambda function exists...
       - FUNCTION_NAME=InvestmentAPI
+      - FUNCTION_NAME1=mutualFund_amount_update
+      - FUNCTION_NAME2=daily_fund_update
+      - FUNCTION_NAME3=deposit_amount_update
       - if aws lambda get-function --function-name $FUNCTION_NAME; then
           echo "Function exists, updating...";
         else
@@ -22,14 +25,25 @@ phases:
     commands:
       - echo Building the Lambda function package...
       - zip -r function.zip *  # Create a zip file of your Lambda function code
+      - cd batch_processes/
+      - zip -r ../function1.zip mutualFund_amount_update.py
+      - zip -r ../function2.zip daily_fund_updates.py
+      - zip -r ../function3.zip deposit_amount_update.py
+      - cd ../
 
   post_build:
     commands:
       - echo Deploying the Lambda function...
       - if aws lambda get-function --function-name $FUNCTION_NAME; then
           aws lambda update-function-code --function-name $FUNCTION_NAME --zip-file fileb://function.zip;
+          aws lambda update-function-code --function-name $FUNCTION_NAME1 --zip-file fileb://function1.zip;
+          aws lambda update-function-code --function-name $FUNCTION_NAME2 --zip-file fileb://function2.zip;
+          aws lambda update-function-code --function-name $FUNCTION_NAME3 --zip-file fileb://function3.zip;
         else
           aws lambda create-function --function-name $FUNCTION_NAME --zip-file fileb://function.zip --handler main.handler --runtime python3.12 --role arn:aws:iam::701647385258:role/service-role/InvestmentAPI-role-xvt4qa8j --layers "arn:aws:lambda:ap-south-1:336392948345:layer:AWSSDKPandas-Python312:13" "arn:aws:lambda:ap-south-1:701647385258:layer:investmentAPILayer:2";
+          aws lambda create-function --function-name $FUNCTION_NAME1 --zip-file fileb://function1.zip --handler mutualFund_amount_update.lambda_handler --runtime python3.12 --role arn:aws:iam::701647385258:role/service-role/InvestmentAPI-role-xvt4qa8j --layers "arn:aws:lambda:ap-south-1:336392948345:layer:AWSSDKPandas-Python312:13" "arn:aws:lambda:ap-south-1:701647385258:layer:investmentAPILayer:2";
+          aws lambda create-function --function-name $FUNCTION_NAME2 --zip-file fileb://function2.zip --handler daily_fund_updates.lambda_handler --runtime python3.12 --role arn:aws:iam::701647385258:role/service-role/InvestmentAPI-role-xvt4qa8j --layers "arn:aws:lambda:ap-south-1:336392948345:layer:AWSSDKPandas-Python312:13" "arn:aws:lambda:ap-south-1:701647385258:layer:investmentAPILayer:2";
+          aws lambda create-function --function-name $FUNCTION_NAME3 --zip-file fileb://function3.zip --handler deposit_amount_update.lambda_handler --runtime python3.12 --role arn:aws:iam::701647385258:role/service-role/InvestmentAPI-role-xvt4qa8j --layers "arn:aws:lambda:ap-south-1:336392948345:layer:AWSSDKPandas-Python312:13" "arn:aws:lambda:ap-south-1:701647385258:layer:investmentAPILayer:2";
         fi
 
 artifacts:
