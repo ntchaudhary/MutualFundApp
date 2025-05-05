@@ -4,8 +4,9 @@ from boto3.dynamodb.conditions import Key
 import json, boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import requests
-from static.depositeApp.constants import DEPOSIT_SQS_URL
-from static.mutualFundApp.constants import MUTUAL_FUND_SQS_URL
+
+DEPOSIT_SQS_URL = 'https://sqs.ap-south-1.amazonaws.com/701647385258/deposit_amount_update_queue'
+MUTUAL_FUND_SQS_URL = 'https://sqs.ap-south-1.amazonaws.com/701647385258/mutualFund_amount_update_queue'
 
 _MF = Mftool()
 
