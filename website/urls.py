@@ -12,6 +12,7 @@ from .src.home_screen.index import home
 
 # from .src.signin_signup_screen.sign_up import signUP
 from .src.signin_signup_screen.login import login
+from .src.signin_signup_screen.logout import logout
 from .src.signin_signup_screen.authCallBack import authCallBack
 # from .src.signin_signup_screen.sign_in import signIN
 # from .src.signin_signup_screen.sign_out import signOUT
@@ -30,6 +31,7 @@ _BASE_ENDPOINT = "/website"
 
 # website.include_router(signUP)
 website.include_router(login)
+website.include_router(logout)
 website.include_router(authCallBack)
 # website.include_router(signIN)
 # website.include_router(signOUT)
