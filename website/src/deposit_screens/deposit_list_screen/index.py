@@ -30,8 +30,6 @@ async def deposit_details(user_details) -> dict:
         values = table.query(  KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])) )
         await asyncio.sleep(0.000001)
 
-        print(values)
-
         if values['Items']:
             status_code = 200
             response = values["Items"]

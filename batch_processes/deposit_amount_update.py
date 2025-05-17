@@ -150,7 +150,7 @@ def lambda_handler(event, context):
 
     for message in event.get('Records'):
         body = json.loads(message.get('body'))
-        user_details['account_id'] = body.get('account')
+        user_details['account_id'] = body.get('account_id')
         user_details['profile'] = body.get('profile')
 
         print(f'going for user : {user_details}')

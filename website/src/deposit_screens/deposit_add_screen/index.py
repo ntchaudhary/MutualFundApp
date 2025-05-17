@@ -218,7 +218,7 @@ async def post_index(request: Request, form_data: DepositBody = Depends(DepositB
 def _delete(fdID: str, user_details = Depends(auth_wrapper)):
     """Delete FD or RD entry from database""" 
     
-    print(user_details)
+    print("line 221",user_details)
 
     try:
         _DB.deleteDynamodbRow( 'deposits', {'account_id': (user_details['account_id']),'id': decimal.Decimal(fdID)} )
