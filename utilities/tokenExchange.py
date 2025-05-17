@@ -1,6 +1,5 @@
 import os, httpx
-from fastapi import Request, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import HTTPException
 
 COGNITO_DOMAIN = os.getenv("COGNITO_DOMAIN")
 CLIENT_ID = os.getenv("CLIENT_ID")

@@ -1,3 +1,4 @@
+import traceback
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
@@ -44,7 +45,7 @@ def _buy(schemeCode, body):
 
     _DB_OBJ = Connection()
 
-    table = _DB_OBJ.dynamodb.Table('fund_owned_details')
+    table = _DB_OBJ.dynamodb.Table('fund_owned_details') # type: ignore
 
     jsonData =  table.get_item(
         Key={
@@ -58,7 +59,7 @@ def _buy(schemeCode, body):
 
     try:
         if 'Item' in jsonData:
-            table2 = _DB_OBJ.dynamodb.Table('fund_transaction_details')
+            table2 = _DB_OBJ.dynamodb.Table('fund_transaction_details') # type: ignore
             response = table2.query(
                 KeyConditionExpression = Key('account_id').eq(str(body.account_id)) & Key('fund_id__id').begins_with(str(schemeCode)),
                 ScanIndexForward=False,  # Set to True for ascending order, False for descending order
@@ -78,16 +79,16 @@ def _buy(schemeCode, body):
         if body.units == 0:
             from mftool import Mftool
             _MF = Mftool()
-            original_data = _MF.get_scheme_historical_nav( schemeCode, as_Dataframe=True )
+            original_data = _MF.get_scheme_historical_nav( schemeCode.split('__')[1], as_Dataframe=True )
 
-            original_data.index = pd.to_datetime(original_data.index, dayfirst=True)
-            original_data['nav'] = pd.to_numeric(original_data['nav'], downcast='float')
+            original_data.index = pd.to_datetime(original_data.index, dayfirst=True) # type: ignore
+            original_data['nav'] = pd.to_numeric(original_data['nav'], downcast='float') # type: ignore
 
 
         investedAmount = body.installment - (body.installment * STAMP_DUTY_PERCENT / 100)
 
         if body.units == 0:
-            units = investedAmount / original_data.loc[date.to_date_string()].nav
+            units = investedAmount / original_data.loc[date.to_date_string()].nav # type: ignore
         else:
             units = body.units
 
@@ -118,6 +119,7 @@ def _buy(schemeCode, body):
         )
         
     except Exception as e:
+        print(traceback.format_exc())
         response = {
             "status" : 500,
             "message": e.args

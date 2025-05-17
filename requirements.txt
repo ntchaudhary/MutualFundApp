@@ -1,14 +1,12 @@
-fastapi
-pydantic
-pendulum
-mftool
-requests
-uvicorn
-Jinja2
-python-multipart
-openpyxl
-pandas
-mangum
-PyJWT
-boto3
+# fastapi
+# pydantic
+# pendulum
+# # mftool
+# requests
+# # uvicorn
+# Jinja2
+# python-multipart
+# # pandas
+# mangum
+# boto3
 python-jose

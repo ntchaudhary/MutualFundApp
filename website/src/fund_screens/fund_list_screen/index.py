@@ -16,13 +16,13 @@ templates = Jinja2Templates(directory="website/UI")
 
 _DB_OBJ = Connection()
 
-async def mutual_fund_fund_details(user_details) -> dict:
+async def mutual_fund_fund_details(user_details) -> list:
     """Return current value of all the invested funds along with gain and loss on per fund basis"""
     # _DB_OBJ = Connection()
     response = list()
 
     
-    table = _DB_OBJ.dynamodb.Table('fund_owned_details')
+    table = _DB_OBJ.dynamodb.Table('fund_owned_details') # type: ignore
 
     await asyncio.sleep(0.000001)
     account_funds =  table.query(  KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])) )['Items']
@@ -53,9 +53,9 @@ async def mutual_fund_fund_details(user_details) -> dict:
 
             response.append(convertResponse(currentMarketPrice))
     except Exception as e:
-        response = {
+        response.append({
             "message": str(e)
-        }
+        })
     return response
 
 
