@@ -24,8 +24,7 @@ phases:
   build:
     commands:
       - echo Building the Lambda function package...
-      - mkdir python_additional
-      - pip install --no-cache-dir -r requirements.txt -t python_additional
+      - pip install --no-cache-dir -r requirements.txt -t python/lib/python3.12/site-packages
       - zip -r function.zip *  # Create a zip file of your Lambda function code
       - cd batch_processes/
       - zip -r ../function1.zip mutualFund_amount_update.py
