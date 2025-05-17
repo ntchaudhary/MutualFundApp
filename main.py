@@ -1,12 +1,12 @@
-# from dotenv import load_dotenv
+# Add your custom dependencies directory to the system path
+import os
+import sys
+
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "python_additional"))
 
 from middleware.authenticationMiddleware import AuthMiddleware
-
-# load_dotenv(override=True)
-
-from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
-from utilities.auth import TokenExpiredException
+from fastapi import FastAPI
 from website.urls import website
 from mangum import Mangum
 
