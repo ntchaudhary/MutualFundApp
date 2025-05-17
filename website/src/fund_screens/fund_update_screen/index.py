@@ -66,7 +66,7 @@ def _buy(schemeCode, body):
                 Limit = 1
                 )
             if response["Items"]:
-                id = int(response["Items"][0]["fund_id__id"].split('__')[1])+1
+                id = int(response["Items"][0]["fund_id__id"].split('__')[2])+1
                 print('line 72 last id in system', id)
             else:
                 id = 1
