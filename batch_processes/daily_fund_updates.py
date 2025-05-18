@@ -13,7 +13,7 @@ _MF = Mftool()
 def lambda_handler(event, context):
     """this lambda function executes daily (tuesday to saturday) at 5 am to update the nav of the fund available in system"""
     dynamodb = boto3.resource('dynamodb')
-    table1 = dynamodb.Table('fund_details')
+    table1 = dynamodb.Table('fund_details') # type: ignore
 
     response = table1.scan()
 
@@ -37,7 +37,7 @@ def lambda_handler(event, context):
 
         if 'nps' in data['fund_id']:
             nps = {}
-            nps = json.loads(requests.get(f"https://npsnav.in/api/{data['fund_id'].split('__')[1]}"))
+            nps = json.loads(requests.get(f"https://npsnav.in/api/{data['fund_id'].split('__')[1]}")) # type: ignore
             x = {
             "fund_id": data['fund_id'],
             "exitTime": 99,
@@ -54,7 +54,7 @@ def lambda_handler(event, context):
 
     try:
 
-        table2 = dynamodb.Table('account_and_user_profile')
+        table2 = dynamodb.Table('account_and_user_profile') # type: ignore
         response_table2 = table2.scan()
 
         items_table2 = response_table2['Items']
@@ -80,7 +80,7 @@ def lambda_handler(event, context):
             messageBody = json.dumps(messageAtributes)
 
             # Send the message
-            if data.get('fund_owned') != 'false':
+            if data.get('fund_owned') != 'no':
                 response_mutual_fund = sqs.send_message(
                                         QueueUrl=MUTUAL_FUND_SQS_URL,
                                         MessageBody=messageBody,
