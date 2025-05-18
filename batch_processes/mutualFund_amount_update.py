@@ -7,10 +7,10 @@ import requests
 
 dynamodb = boto3.resource('dynamodb')
 
-table = dynamodb.Table('account_and_user_profile')
-table2 = dynamodb.Table('fund_details')
-table3 = dynamodb.Table('fund_owned_details')
-table4 = dynamodb.Table('fund_transaction_details')
+table = dynamodb.Table('account_and_user_profile') # type: ignore
+table2 = dynamodb.Table('fund_details') # type: ignore
+table3 = dynamodb.Table('fund_owned_details') # type: ignore
+table4 = dynamodb.Table('fund_transaction_details') # type: ignore
 
 def update_fund_details(fund_detail):
     from mftool import Mftool
@@ -25,7 +25,7 @@ def update_fund_details(fund_detail):
 
         if 'nps' in fund_detail['fund_id']:
             nps = {}
-            nps = json.loads(requests.get(f"https://npsnav.in/api/{fund_detail['fund_id'].split('__')[1]}"))
+            nps = json.loads(requests.get(f"https://npsnav.in/api/{fund_detail['fund_id'].split('__')[1]}")) # type: ignore
             x = {
             "fund_id": fund_detail['fund_id'],
             "exitTime": 99,
@@ -101,8 +101,7 @@ def update_invested_details(fund_detail, operation):
     except Exception as e:
         print("Unexpected error occurred:", e)
 
-    if operation == 'sell':
-        update_reinvest_units(fund_detail)
+    update_reinvest_units(fund_detail)
 
     update_account_and_user_profile(fund_detail)
 
@@ -178,6 +177,9 @@ def update_account_and_user_profile(user_details):
     print('Account and user table update', response['Attributes'])
 
 def update_nav(fund_detail, fund_data):
+    
+    """ This function will update the nav stored in each row of fund_owned_details table per user per fund"""
+
     per_account_funds = table3.query(
             KeyConditionExpression=Key('account_id').eq(str(fund_detail['account_id'])),
             ProjectionExpression = 'fund_id'

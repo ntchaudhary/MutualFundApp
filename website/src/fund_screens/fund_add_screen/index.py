@@ -66,13 +66,20 @@ def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_f
         if form_data.key == 'None' :
             raise Exception('Please select fund from the list')
         
-        table = _DBObj.dynamodb.Table('fund_owned_details')
+        table = _DBObj.dynamodb.Table('fund_owned_details') # type: ignore
 
         table.put_item(
               Item= {
                    "account_id": str(user_details['account_id']),
                    "fund_id": f"mf__{form_data.key}",
-                   "scheme_name": jsonData11[form_data.key]
+                   "scheme_name": jsonData11[form_data.key],
+                   "nav": 0,
+                   "exit_time": 99,
+                   "reinvest_units" : 0, 
+                   "reinvest_units_amount" : 0, 
+                   "invested" : 0, 
+                   "total_units" :0
+            
               },
               ConditionExpression = 'attribute_not_exists(account_id) AND attribute_not_exists(fund_id)'
         )
