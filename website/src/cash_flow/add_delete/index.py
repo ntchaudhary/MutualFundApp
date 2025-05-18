@@ -5,7 +5,7 @@ from boto3.dynamodb.conditions import Key
 from pydantic import BaseModel
 from typing import Optional
 from decimal import Decimal
-import pendulum, json
+import pendulum
 
 from database.dbSetupAndConnection import Connection
 from utilities.utils import MyObject
@@ -50,6 +50,10 @@ class Income_Expense_Body(BaseModel):
         )
 
 
+# Configure how many sequence digits you need per day (e.g., 6 digits = up to 999,999 transactions/day)
+SEQ_DIGITS = 6
+MULTIPLIER = 10 ** SEQ_DIGITS  # e.g. 1_000_000
+
 def _add(body, user_details):
     """ Add the new income or expense entry into database"""
     try:
@@ -59,20 +63,32 @@ def _add(body, user_details):
 
         if expense_date > pendulum.now().date():
             raise Exception("Future Dated Transaction")
+        
 
+        # Create numeric date prefix YYYYMMDD
+        date_prefix = int(expense_date.format('YYYYMMDD'))
+
+        # Define the numeric range for this date
+        start_id = date_prefix * MULTIPLIER
+        end_id = start_id + (MULTIPLIER - 1)
+
+        # Query the highest transaction_id in this date range
         response = table.query(
-            KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])),
-            ScanIndexForward=False,  # Set to True for ascending order, False for descending order
-            Limit = 1
+            KeyConditionExpression=(
+                Key('account_id').eq(str(user_details['account_id'])) &
+                Key('transaction_id').between(start_id, end_id)
+            ),
+            ScanIndexForward=False,  # Descending order to get the latest first
+            Limit=1
         )
 
-        if response["Items"]:
-            if str(expense_date.format('YYYYMMDD')) in str(response["Items"][0]["transaction_id"]):
-                id = response["Items"][0]["transaction_id"]+1
-            else:
-                id = expense_date.format('YYYYMMDD0000')
+        # Compute new transaction_id
+        if response['Items']:
+            latest_id = int(response['Items'][0]['transaction_id'])
+            id = latest_id + 1
         else:
-            id = expense_date.format('YYYYMMDD0000')
+            id = start_id + 1  # First of the day
+
 
         insert_json = {
             "account_id":       str(user_details['account_id']),
