@@ -59,6 +59,17 @@ def update_fund_details(fund_detail):
 
         table2.put_item(Item=x,ConditionExpression = 'attribute_not_exists(fund_id)')
 
+        user_response = table.update_item (
+            Key={'account_id': str(fund_detail['account_id']), 'profile': fund_detail['profile']},
+            UpdateExpression='SET fund_owned = :fund_owned',           
+            ExpressionAttributeValues={
+                ':fund_owned': 'yes'
+            },
+            ReturnValues='UPDATED_NEW'
+        )
+
+        print('Account and user table update', user_response['Attributes'])
+
         
     except ClientError as e:
         if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
