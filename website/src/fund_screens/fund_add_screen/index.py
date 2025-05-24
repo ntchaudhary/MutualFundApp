@@ -73,12 +73,12 @@ def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_f
                    "account_id": str(user_details['account_id']),
                    "fund_id": f"mf__{form_data.key}",
                    "scheme_name": jsonData11[form_data.key],
-                   "nav": 0,
-                   "exit_time": 99,
-                   "reinvest_units" : 0, 
-                   "reinvest_units_amount" : 0, 
-                   "invested" : 0, 
-                   "total_units" :0
+                   "nav": '0',
+                   "exit_time": '99',
+                   "reinvest_units" : '0', 
+                   "reinvest_units_amount" : '0', 
+                   "invested" : '0', 
+                   "total_units" :'0'
             
               },
               ConditionExpression = 'attribute_not_exists(account_id) AND attribute_not_exists(fund_id)'
@@ -91,6 +91,7 @@ def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_f
         sendMessageToQueue(
             {
                 'account_id':user_details['account_id'],
+                'profile':user_details['profile'],
                 'fund_id': f"mf__{form_data.key}",
                 'operation': 'new'
             },
