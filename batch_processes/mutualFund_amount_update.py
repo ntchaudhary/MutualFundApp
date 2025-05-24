@@ -1,4 +1,5 @@
 from decimal import Decimal
+from logging import raiseExceptions
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key, Attr
 from datetime import datetime, timedelta
@@ -13,24 +14,34 @@ table3 = dynamodb.Table('fund_owned_details') # type: ignore
 table4 = dynamodb.Table('fund_transaction_details') # type: ignore
 
 def update_fund_details(fund_detail):
-    from mftool import Mftool
-
-    _MF = Mftool()
     x=dict()
 
     try:
         if 'mf' in fund_detail['fund_id']:
+            from mftool import Mftool
+            _MF = Mftool()
             x = _MF.get_scheme_quote(fund_detail['fund_id'].split('__')[1])
             del x['scheme_code']
 
         if 'nps' in fund_detail['fund_id']:
             nps = {}
-            nps = json.loads(requests.get(f"https://npsnav.in/api/{fund_detail['fund_id'].split('__')[1]}")) # type: ignore
+
+            api_url = f"https://npsnav.in/api/detailed/{fund_detail['fund_id'].split('__')[1]}"
+            print(api_url)
+
+            nav = requests.get(api_url)
+            
+            if nav.status_code != 200 :
+                print(nav.status_code)
+                raise Exception("NPS Api not available")
+
+            nps = json.loads(nav.text) # type: ignore
+
             x = {
             "fund_id": fund_detail['fund_id'],
             "exitTime": 99,
-            "last_updated": nps['Last Updated'],
-            "nav": nps['NAV'],
+            "last_updated": str(nps['Last Updated']),
+            "nav": str(nps['NAV']),
             "scheme_name": nps['Scheme Name']
             }
 
@@ -41,12 +52,12 @@ def update_fund_details(fund_detail):
             },
             UpdateExpression='SET nav = :nav, exit_time = :exit_time, reinvest_units = :reinvest_units, reinvest_units_amount = :reinvest_units_amount, invested = :invested, total_units = :total_units',
             ExpressionAttributeValues={
-                ':nav': x.get('nav', 0),
-                ':exit_time': 99, 
-                ':reinvest_units' : 0, 
-                ':reinvest_units_amount' : 0, 
-                ':invested' : 0, 
-                ':total_units'  :0
+                ':nav': str(x.get('nav', 0)),
+                ':exit_time': '99', 
+                ':reinvest_units' : '0', 
+                ':reinvest_units_amount' : '0', 
+                ':invested' : '0', 
+                ':total_units'  :'0'
             },
             ReturnValues='UPDATED_NEW'
         )
@@ -58,6 +69,7 @@ def update_fund_details(fund_detail):
         x = json.loads(json.dumps(x))
 
         table2.put_item(Item=x,ConditionExpression = 'attribute_not_exists(fund_id)')
+        print('fund details updated')
 
         user_response = table.update_item (
             Key={'account_id': str(fund_detail['account_id']), 'profile': fund_detail['profile']},

@@ -162,7 +162,13 @@ def post_index(request: Request, form_data: add_nps_body = Depends(add_nps_body.
               Item= {
                    "account_id": str(user_details['account_id']),
                    "fund_id": f"nps__{form_data.scheme_code}",
+                   "scheme_name": [key for key,value in categorized_schemes[form_data.fund_house].items() if value == form_data.scheme_code ][0],
+                   "nav": '0',
+                   "invested" : '0', 
+                   "total_units" :'0',
                    "allocation": str(form_data.allocation),
+                   "reinvest_units" : '0', 
+                   "reinvest_units_amount" : '0', 
                    "exit_time": 99
               },
               ConditionExpression = 'attribute_not_exists(account_id) AND attribute_not_exists(fund_id)'
@@ -177,6 +183,7 @@ def post_index(request: Request, form_data: add_nps_body = Depends(add_nps_body.
         sendMessageToQueue(
             {
                 'account_id':user_details['account_id'],
+                'profile':user_details['profile'],
                 'fund_id': f"nps__{form_data.scheme_code}",
                 'operation': 'new'
             },
