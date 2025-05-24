@@ -37,12 +37,12 @@ def lambda_handler(event, context):
 
         if 'nps' in data['fund_id']:
             nps = {}
-            nps = json.loads(requests.get(f"https://npsnav.in/api/{data['fund_id'].split('__')[1]}")) # type: ignore
+            nps = json.loads(requests.get(f"https://npsnav.in/api/detailed/{data['fund_id'].split('__')[1]}")) # type: ignore
             x = {
             "fund_id": data['fund_id'],
             "exitTime": 99,
             "last_updated": nps['Last Updated'],
-            "nav": nps['NAV'],
+            "nav": str(nps['NAV']),
             "scheme_name": nps['Scheme Name']
             }
 
