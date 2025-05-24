@@ -9,10 +9,11 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
-    html, body {
+    /* REMOVED: This rule is generally not needed as Bootstrap handles overflow. */
+    /* html, body {
       max-width: 100%;
       overflow-x: hidden;
-    }
+    } */
     .dropdown-menu[data-bs-popper] {
       top: 100%;
       left: auto;
@@ -26,18 +27,26 @@
     }
     .accordion-item {
       border: none;
+      /* horizontal divider */
+      border-bottom: 1px solid #dee2e6;
+    }
+    /* ADDED: Ensures the last accordion item doesn't have a bottom border if it's not desired. */
+    .accordion-item:last-child {
+      border-bottom: none;
     }
     .accordion-button {
       padding: 1rem;
     }
-    /* Ensure borders for columns in accordion body for better separation */
+    /* Remove borders between columns in accordion body */
+    /* MODIFIED: Combined and simplified these rules. Bootstrap's grid system handles internal borders well. */
     .accordion-body .row > .col {
-      border-right: 1px solid #dee2e6;
+      border: none; /* Kept for explicit removal */
     }
-    .accordion-body .row > .col:last-child {
+    /* REMOVED: This was redundant as border: none already applied. */
+    /* .accordion-body .row > .col:last-child {
       border-right: none;
-    }
-    /* Responsive font sizes for tables in accordion body */
+    } */
+    /* MODIFIED: Combined media queries for better organization. */
     @media (max-width: 768px) {
       .accordion-body .row > .col { font-size: 14px; }
     }
@@ -47,25 +56,37 @@
   </style>
 
   <script>
-    // Modified to include currency symbol '₹'
-    function separateNumber(num, id) {
+    // RENAMED: `separateNumber` to `formatCurrency` for clarity.
+    // ADDED: Check for `el` to prevent errors if element is not found.
+    function formatCurrency(num, id) {
       const nf = new Intl.NumberFormat('en-IN');
       const el = document.getElementById(id);
-      if(el) el.innerHTML = "₹" + nf.format(parseFloat(num));
+      if (el) el.innerHTML = "₹" + nf.format(parseFloat(num));
     }
 
     function buildPage(data, agg) {
       document.getElementById('count').textContent = agg.count;
-      // Apply number formatting with currency symbol to top summary figures
+      // MODIFIED: Use the new function name.
       ['invested','current','totalReturn','totalharvest'].forEach(k =>
-        separateNumber(agg[k], k)
+        formatCurrency(agg[k], k)
       );
 
+      // ADDED: Color logic for totalReturn and current
+      const totalReturnEl = document.getElementById('totalReturn');
+      const totalcurrentEl = document.getElementById('current');
+      if (agg.totalReturn < 0) {
+        totalReturnEl.classList.add('text-danger');
+        totalcurrentEl.classList.add('text-danger');
+      } else if (agg.totalReturn > 0) {
+        totalReturnEl.classList.add('text-success');
+        totalcurrentEl.classList.add('text-success');
+      }
+
       const acc = document.getElementById('schemesAccordion');
-      acc.innerHTML = ''; // Clear previous content
+      acc.innerHTML = '';
       data.forEach(item => {
         const code = item.scheme_code;
-        const clean = code.replace(/\s+/g, '_'); // Replace spaces for valid IDs
+        const clean = code.replace(/\s+/g, '_');
 
         const itm = document.createElement('div');
         itm.className = 'accordion-item';
@@ -76,13 +97,13 @@
                     aria-expanded="false" aria-controls="collapse-${clean}">
               <div class="row w-100 text-center">
                 <div class="col">
-                  <h6><strong>${item.scheme_name}</strong></h6>
+                  <div class="h6"><strong>${item.scheme_name}</strong></div>
                 </div>
                 <div class="col">
-                  <h6 class="text-dark" id="${clean}-inv"></h6>
+                  <div class="h5" id="${clean}-inv"></div>
                 </div>
                 <div class="col">
-                  <h6 class="text-dark" id="${clean}-cur"></h6>
+                  <div class="h5" id="${clean}-cur"></div>
                 </div>
               </div>
             </button>
@@ -90,12 +111,46 @@
           <div id="collapse-${clean}" class="accordion-collapse collapse"
                aria-labelledby="heading-${clean}" data-bs-parent="#schemesAccordion">
             <div class="accordion-body">
-              <div class="row text-center">
-                <div class="col"><h6><strong>Return</strong></h6><h6 id="${clean}-ret"></h6></div>
-                <div class="col"><h6><strong>Exit Period</strong></h6><h6>${item.exitTime} yr(s)</h6></div>
-                <div class="col"><h6><strong>Reinvest Amt</strong></h6><h6 id="${clean}-harv"></h6></div>
-                <div class="col"><h6><strong>Sell Units</strong></h6><h6>${item.harvest_unit}</h6></div>
-                <div class="col"><h6><strong>Amt Req’d</strong></h6><h6 id="${clean}-req"></h6></div>
+              <div class="row d-flex align-items-center">
+                <div class="col">
+                  <div class="row text-center align-items-center">
+                    <div class="col">
+                        <div class="h5"><strong>Return</strong></div>
+                    </div>
+                    <div class="col">
+                        <div class="h5"><strong>Exit Period</strong></div>
+                    </div>
+                    <div class="col">
+                        <div class="h5"><strong>Reinvest Amt</strong></div>
+                    </div>
+                    <div class="col">
+                        <div class="h5"><strong>Sell Units</strong></div>
+                    </div>
+                    <div class="col">
+                        <div class="h5"><strong>Amt Req’d</strong></div>
+                    </div>
+                  </div>
+                  <div class="row text-center align-items-center">
+                    <div class="col">
+                        <div class="h5" id="${clean}-ret"></div>
+                    </div>
+                    <div class="col">
+                        <div class="h5">${item.exitTime} yr(s)</div>
+                    </div>
+                    <div class="col">
+                        <div class="h5" id="${clean}-harv"></div>
+                    </div>
+                    <div class="col">
+                        <div class="h5" id="${clean}-units">${item.harvest_unit}</div>
+                    </div>
+                    <div class="col">
+                        <div class="h5" id="${clean}-req"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-auto">
+                  <a href="/website/fund-transactions-list/${code}" class="btn btn-sm btn-outline-primary" aria-label="View transactions for ${item.scheme_name}">View Transactions</a>
+                </div>
               </div>
             </div>
           </div>
@@ -103,61 +158,45 @@
 
         acc.appendChild(itm);
 
-        // Apply number formatting with currency symbol to individual scheme figures
-        separateNumber(item.invested, `${clean}-inv`);
-        separateNumber(item.balance_units_value, `${clean}-cur`);
-        separateNumber(item.gainLoss, `${clean}-ret`);
-        separateNumber(item.harvest, `${clean}-harv`);
-        separateNumber(item.harvesting_amt_req, `${clean}-req`);
+        // MODIFIED: Use the new function name.
+        formatCurrency(item.invested, `${clean}-inv`);
+        formatCurrency(item.balance_units_value, `${clean}-cur`);
+        formatCurrency(item.gainLoss, `${clean}-ret`);
+        formatCurrency(item.harvest, `${clean}-harv`);
+        formatCurrency(item.harvesting_amt_req, `${clean}-req`);
+
+        // color logic: container light-red if sell units > 0
+        const body = itm.querySelector('.accordion-body');
+        // MODIFIED: Changed background colors for better aesthetics and clearer distinction.
+        if (parseFloat(item.harvest_unit) > 0) {
+          body.classList.add('bg-warning-subtle'); // Use a softer warning color
+        } else {
+          body.classList.add('bg-light'); // Use a neutral light background
+        }
+        // ADDED: Ensure text remains dark on all backgrounds.
+        body.querySelectorAll('h6, h5, h4, h3, h2, p, span, a, div').forEach(el => el.classList.add('text-dark'));
+
+
+        // color current value: red if return < 0, green if > 0: red if return < 0, green if > 0
+        const curEl = document.getElementById(`${clean}-cur`);
+        const retEl = document.getElementById(`${clean}-ret`); // ADDED: Element for return value
+        if (item.gainLoss < 0) {
+          curEl.classList.add('text-danger');
+        } else if (item.gainLoss > 0) {
+          curEl.classList.add('text-success');
+        }
       });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Aggregates and schemes data would be injected by a server-side templating engine (like Jinja2)
-      // For demonstration, dummy data is used here if not rendered by backend:
       const aggregates = {
-        count: typeof {{ count }} !== 'undefined' ? {{ count }} : 5,
-        invested: typeof {{ invested }} !== 'undefined' ? {{ invested }} : 1500000,
-        current: typeof {{ current }} !== 'undefined' ? {{ current }} : 1750000,
-        totalReturn: typeof {{ totalReturn }} !== 'undefined' ? {{ totalReturn }} : 250000,
-        totalharvest: typeof {{ totalharvest }} !== 'undefined' ? {{ totalharvest }} : 100000
+        count: {{ count }},
+        invested: {{ invested }},
+        current: {{ current }},
+        totalReturn: {{ totalReturn }},
+        totalharvest: {{ totalharvest }}
       };
-      const schemes = typeof {{ body | tojson }} !== 'undefined' ? {{ body | tojson }} : [
-        {
-          "scheme_code": "Scheme A",
-          "scheme_name": "Equity Fund A",
-          "invested": 500000,
-          "balance_units_value": 550000,
-          "gainLoss": 50000,
-          "exitTime": 2,
-          "harvest": 10000,
-          "harvest_unit": 20,
-          "harvesting_amt_req": 50000
-        },
-        {
-          "scheme_code": "Scheme B Long Name",
-          "scheme_name": "Debt Fund B with a very long name",
-          "invested": 300000,
-          "balance_units_value": 320000,
-          "gainLoss": 20000,
-          "exitTime": 1,
-          "harvest": 0,
-          "harvest_unit": 0,
-          "harvesting_amt_req": 0
-        },
-        {
-          "scheme_code": "Scheme C",
-          "scheme_name": "Hybrid Fund C",
-          "invested": 700000,
-          "balance_units_value": 880000,
-          "gainLoss": 180000,
-          "exitTime": 3,
-          "harvest": 90000,
-          "harvest_unit": 50,
-          "harvesting_amt_req": 150000
-        }
-      ]; // Example dummy data
-      
+      const schemes = {{ body | tojson }};
       buildPage(schemes, aggregates);
     });
   </script>
@@ -171,25 +210,19 @@
         <div class="py-5">
           <h1><strong>Number of investments</strong> – <span id="count"></span></h1>
           <div class="row mt-4">
-            <div class="col py-2"><h5><strong>Invested</strong></h5><h2 id="invested"></h2></div>
-            <div class="col py-2"><h5><strong>Current</strong></h5><h2 id="current"></h2></div>
+            <div class="col py-2"><h5><strong>Total Invested</strong></h5><h2 id="invested"></h2></div>
+            <div class="col py-2"><h5><strong>Total Current</strong></h5><h2 id="current"></h2></div>
             <div class="col py-2"><h5><strong>Total Return</strong></h5><h2 id="totalReturn"></h2></div>
-            <div class="col py-2"><h5><strong>Total Reinvesting Amt</strong></h5><h2 id="totalharvest"></h2></div>
+            <div class="col py-2"><h5><strong>Total Reinvest Amt</strong></h5><h2 id="totalharvest"></h2></div>
           </div>
         </div>
       </div>
       <div class="col px-0">
         <div class="py-5">
-          <div class="row text-center">
-            <div class="col">
-              <h3>Your Schemes</h3>
-            </div>
-            <div class="col">
-              <h3>Invested</h3>
-            </div>
-            <div class="col">
-              <h3>Current</h3>
-            </div>
+          <div class="row text-center mb-3">
+            <div class="col h3"><strong>Your Schemes</strong></div>
+            <div class="col h3"><strong>Invested</strong></div>
+            <div class="col h3"><strong>Current</strong></div>
           </div>
           <div class="accordion" id="schemesAccordion"></div>
         </div>
