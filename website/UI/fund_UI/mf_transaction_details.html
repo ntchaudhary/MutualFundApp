@@ -58,7 +58,7 @@
 
   <script type="text/javascript">
     function sellEntry(fund_id__id) {
-      var txt = "https://y2fojxywli65on7j6bnavxvegy0kepwb.lambda-url.ap-south-1.on.aws/website/" + fund_id__id + "/sell/";
+      var txt = "https://y2fojxywli65on7j6bnavxvegy0kepwb.lambda-url.ap-south-1.on.aws/website/fund/" + fund_id__id + "/sell/";
       let options = {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json;charset=utf-8' }
@@ -86,7 +86,7 @@
       <div class="col section-header">
         <h1><strong>{{ body.schemeName }}</strong></h1>
         <div class="mt-3">
-          <a href="/website/{{ body.schemeCode }}/update" class="btn btn-custom">Add New Purchase</a>
+          <a href="/website/fund/{{ body.schemeCode }}/update" class="btn btn-custom">Add New Purchase</a>
         </div>
         <div class="mt-4">
           <h6>Below are the list of all transactions done on this fund</h6>

@@ -30,7 +30,7 @@ class DepositBody(BaseModel):
             )
 
 
-@fundAdd.get('/add-fund', response_class=HTMLResponse)
+@fundAdd.get('/add', response_class=HTMLResponse)
 def get(request: Request, user_details = Depends(auth_wrapper)):
 
     with open('static/mutualFundApp/fundList.json', 'rb') as data:
@@ -51,7 +51,7 @@ def get(request: Request, user_details = Depends(auth_wrapper)):
         }
     )
 
-@fundAdd.post('/add-fund', response_class=HTMLResponse)
+@fundAdd.post('/add', response_class=HTMLResponse)
 def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
 
     try:

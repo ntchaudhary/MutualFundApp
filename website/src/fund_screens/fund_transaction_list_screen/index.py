@@ -40,10 +40,8 @@ def _fund_transactions_list(schemeCode, user_details) -> dict:
         }
     return (response)
 
-@fundTransactionList.get('/fund-transactions-list/{schemeCode}', response_class=HTMLResponse)
+@fundTransactionList.get('/{schemeCode}/transactions', response_class=HTMLResponse)
 def index(request: Request, user_details = Depends(auth_wrapper)):
-
-    # api_url = f"""http://127.0.0.1:8000/mutual-fund/fund-transactions-list/{request.path_params.get('schemeCode')}"""
 
     response = _fund_transactions_list(request.path_params.get('schemeCode'), user_details) # requests.get(api_url)
 

@@ -65,7 +65,7 @@ _inactive_data_mapping = {
 active_data_mapping = {
     'Mutual Funds': {
         "type": 'Mutual Funds',
-        "add_new_url": "/website/add-fund",
+        "add_new_url": "/website/fund/add",
         "details_url": "/website/fund/list",
         "button_text": "Add New"
     },

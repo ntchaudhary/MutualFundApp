@@ -40,9 +40,9 @@ website.include_router(authCallBack)
 website.include_router(home, prefix=_BASE_ENDPOINT)
 
 website.include_router(fundDetails, prefix=f"{_BASE_ENDPOINT}/fund")
-website.include_router(fundTransactionList, prefix=_BASE_ENDPOINT)
-website.include_router(fundUpdate, prefix=_BASE_ENDPOINT)
-website.include_router(fundAdd, prefix=_BASE_ENDPOINT)
+website.include_router(fundTransactionList, prefix=f"{_BASE_ENDPOINT}/fund")
+website.include_router(fundUpdate, prefix=f"{_BASE_ENDPOINT}/fund")
+website.include_router(fundAdd, prefix=f"{_BASE_ENDPOINT}/fund")
 
 website.include_router(depositList, prefix=_BASE_ENDPOINT)
 website.include_router(depositAdd, prefix=_BASE_ENDPOINT)
