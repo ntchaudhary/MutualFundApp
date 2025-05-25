@@ -9,15 +9,16 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
   <style>
-    /* REMOVED: This rule is generally not needed as Bootstrap handles overflow. */
-    /* html, body {
+    /* Prevent horizontal overflow */
+    html, body {
       max-width: 100%;
       overflow-x: hidden;
-    } */
-    .dropdown-menu[data-bs-popper] {
-      top: 100%;
-      left: auto;
-      margin-top: .125rem;
+    }
+
+    /* Remove gutter margins from Bootstrap rows */
+    .row {
+      margin-right: 0;
+      margin-left: 0;
     }
     /* Edge-to-edge accordion */
     .accordion {
@@ -27,7 +28,6 @@
     }
     .accordion-item {
       border: none;
-      /* horizontal divider */
       border-bottom: 1px solid #dee2e6;
     }
     /* ADDED: Ensures the last accordion item doesn't have a bottom border if it's not desired. */
@@ -37,41 +37,66 @@
     .accordion-button {
       padding: 1rem;
     }
-    /* Remove borders between columns in accordion body */
-    /* MODIFIED: Combined and simplified these rules. Bootstrap's grid system handles internal borders well. */
-    .accordion-body .row > .col {
-      border: none; /* Kept for explicit removal */
-    }
-    /* REMOVED: This was redundant as border: none already applied. */
-    /* .accordion-body .row > .col:last-child {
+    /* Custom styles for the table within the accordion body */
+    .accordion-body .table th,
+    .accordion-body .table td {
+      vertical-align: middle;
+      padding: 0.75rem;
+      text-align: center;
+      border-left: none;
       border-right: none;
-    } */
-    /* MODIFIED: Combined media queries for better organization. */
+    }
+
+    .accordion-body .table th {
+      font-weight: bold;
+    }
+
+    .accordion-body .table thead th {
+        border-bottom: 1px solid #dee2e6;
+    }
+    .accordion-body .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Prevent wide table overflow */
+    .accordion-body {
+      overflow-x: auto;
+    }
+
+    /* Style for the action column */
+    .accordion-body .table .col-action {
+      width: 1%; /* Make the column take only the space it needs */
+      white-space: nowrap; /* Prevent content from wrapping */
+      text-align: center; /* Center the button within its minimal space */
+    }
+
+    /* Responsive font sizes for table content */
     @media (max-width: 768px) {
-      .accordion-body .row > .col { font-size: 14px; }
+      .accordion-body .table { font-size: 14px; }
     }
     @media (max-width: 576px) {
-      .accordion-body .row > .col { font-size: 12px; }
+      .accordion-body .table { font-size: 12px; }
     }
   </style>
 
   <script>
-    // RENAMED: `separateNumber` to `formatCurrency` for clarity.
-    // ADDED: Check for `el` to prevent errors if element is not found.
+    // Function to format numbers as currency (Indian Rupees)
     function formatCurrency(num, id) {
       const nf = new Intl.NumberFormat('en-IN');
       const el = document.getElementById(id);
       if (el) el.innerHTML = "₹" + nf.format(parseFloat(num));
     }
 
+    // Function to build the main page content, including summary and accordion schemes
     function buildPage(data, agg) {
+      // Update the count of investments
       document.getElementById('count').textContent = agg.count;
-      // MODIFIED: Use the new function name.
+
       ['invested','current','totalReturn','totalharvest'].forEach(k =>
         formatCurrency(agg[k], k)
       );
 
-      // ADDED: Color logic for totalReturn and current
+      // Apply color coding to Total Return and Total Current based on return value
       const totalReturnEl = document.getElementById('totalReturn');
       const totalcurrentEl = document.getElementById('current');
       if (agg.totalReturn < 0) {
@@ -82,14 +107,27 @@
         totalcurrentEl.classList.add('text-success');
       }
 
+      // Get the accordion container for schemes
       const acc = document.getElementById('schemesAccordion');
-      acc.innerHTML = '';
+      acc.innerHTML = ''; // Clear existing content
+
+      // Iterate over each scheme to create an accordion item
       data.forEach(item => {
         const code = item.scheme_code;
-        const clean = code.replace(/\s+/g, '_');
+        const clean = code.replace(/\s+/g, '_'); // Create a clean ID from scheme code
 
         const itm = document.createElement('div');
-        itm.className = 'accordion-item';
+        itm.className = 'accordion-item'; // Standard Bootstrap accordion item class
+
+        // Determine row class based on gainLoss for the table row
+        let rowClass = '';
+        if (item.harvest_unit > 0) {
+            rowClass = 'table-warning';
+        }else {
+            rowClass = 'table-primary';
+        }
+
+        // Set the inner HTML for the accordion item, including header and body
         itm.innerHTML = `
           <h2 class="accordion-header" id="heading-${clean}">
             <button class="accordion-button collapsed" type="button"
@@ -111,75 +149,52 @@
           <div id="collapse-${clean}" class="accordion-collapse collapse"
                aria-labelledby="heading-${clean}" data-bs-parent="#schemesAccordion">
             <div class="accordion-body">
-              <div class="row d-flex align-items-center">
-                <div class="col">
-                  <div class="row text-center align-items-center">
-                    <div class="col">
-                        <div class="h5"><strong>Return</strong></div>
-                    </div>
-                    <div class="col">
-                        <div class="h5"><strong>Exit Period</strong></div>
-                    </div>
-                    <div class="col">
-                        <div class="h5"><strong>Reinvest Amt</strong></div>
-                    </div>
-                    <div class="col">
-                        <div class="h5"><strong>Sell Units</strong></div>
-                    </div>
-                    <div class="col">
-                        <div class="h5"><strong>Amt Req’d</strong></div>
-                    </div>
-                  </div>
-                  <div class="row text-center align-items-center">
-                    <div class="col">
-                        <div class="h5" id="${clean}-ret"></div>
-                    </div>
-                    <div class="col">
-                        <div class="h5">${item.exitTime} yr(s)</div>
-                    </div>
-                    <div class="col">
-                        <div class="h5" id="${clean}-harv"></div>
-                    </div>
-                    <div class="col">
-                        <div class="h5" id="${clean}-units">${item.harvest_unit}</div>
-                    </div>
-                    <div class="col">
-                        <div class="h5" id="${clean}-req"></div>
-                    </div>
-                  </div>
-                </div>
-                <div class="col-md-auto">
-                  <a href="/website/fund-transactions-list/${code}" class="btn btn-sm btn-outline-primary" aria-label="View transactions for ${item.scheme_name}">View Transactions</a>
-                </div>
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th class="text-center">Return</th>
+                      <th class="text-center">Exit Period</th>
+                      <th class="text-center">Reinvest Amt</th>
+                      <th class="text-center">Sell Units</th>
+                      <th class="text-center">Amt Req’d</th>
+                      <th class="col-action"></th> </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="${rowClass}">
+                      <td class="text-center" id="${clean}-ret"></td>
+                      <td class="text-center">${item.exitTime} yr(s)</td>
+                      <td class="text-center" id="${clean}-harv"></td>
+                      <td class="text-center" id="${clean}-units">${item.harvest_unit}</td>
+                      <td class="text-center" id="${clean}-req"></td>
+                      <td class="col-action">
+                        <a href="/website/fund-transactions-list/${code}" class="btn btn-sm btn-outline-primary" aria-label="View transactions for ${item.scheme_name}">View Transactions</a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
         `;
 
-        acc.appendChild(itm);
+        acc.appendChild(itm); // Add the created accordion item to the container
 
-        // MODIFIED: Use the new function name.
+        // Format and display individual scheme financial values
         formatCurrency(item.invested, `${clean}-inv`);
         formatCurrency(item.balance_units_value, `${clean}-cur`);
         formatCurrency(item.gainLoss, `${clean}-ret`);
         formatCurrency(item.harvest, `${clean}-harv`);
         formatCurrency(item.harvesting_amt_req, `${clean}-req`);
 
-        // color logic: container light-red if sell units > 0
-        const body = itm.querySelector('.accordion-body');
-        // MODIFIED: Changed background colors for better aesthetics and clearer distinction.
-        if (parseFloat(item.harvest_unit) > 0) {
-          body.classList.add('bg-warning-subtle'); // Use a softer warning color
-        } else {
-          body.classList.add('bg-light'); // Use a neutral light background
-        }
-        // ADDED: Ensure text remains dark on all backgrounds.
-        body.querySelectorAll('h6, h5, h4, h3, h2, p, span, a, div').forEach(el => el.classList.add('text-dark'));
+        // Ensure text remains dark on all backgrounds for readability
+        // Adjusted selector to target text elements within the table directly.
+        itm.querySelectorAll('.accordion-body td, .accordion-body th').forEach(el => el.classList.add('text-dark'));
 
 
-        // color current value: red if return < 0, green if > 0: red if return < 0, green if > 0
+        // Apply color coding to current value and return based on 'gainLoss'
         const curEl = document.getElementById(`${clean}-cur`);
-        const retEl = document.getElementById(`${clean}-ret`); // ADDED: Element for return value
+        const retEl = document.getElementById(`${clean}-ret`);
         if (item.gainLoss < 0) {
           curEl.classList.add('text-danger');
         } else if (item.gainLoss > 0) {
