@@ -66,7 +66,7 @@ active_data_mapping = {
     'Mutual Funds': {
         "type": 'Mutual Funds',
         "add_new_url": "/website/add-fund",
-        "details_url": "/website/fund-list",
+        "details_url": "/website/fund/list",
         "button_text": "Add New"
     },
     'Deposits': {
@@ -79,7 +79,7 @@ active_data_mapping = {
         "type": 'National Pension Scheme',
         "amount": 0,
         "add_new_url": "/website/nps/add",
-        "details_url": "#",
+        "details_url": "/website/nps/list",
         "button_text": "Add New"
     },
     'Cash Flow': {

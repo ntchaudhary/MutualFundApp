@@ -31,6 +31,10 @@ async def mutual_fund_fund_details(user_details) -> list:
 
     try:
         for currentMarketPrice in account_funds:
+
+            # to prevent nps funds from flowing into mutual funds
+            if 'nps__' in currentMarketPrice['fund_id']:
+                continue
             
             currentMarketPrice['scheme_code'] = currentMarketPrice['fund_id']
             del currentMarketPrice['fund_id']
@@ -59,7 +63,7 @@ async def mutual_fund_fund_details(user_details) -> list:
     return response
 
 
-@fundDetails.get('/fund-list', response_class=HTMLResponse)
+@fundDetails.get('/list', response_class=HTMLResponse)
 def index(request: Request, user_details = Depends(auth_wrapper)):
 
     response = asyncio.run(mutual_fund_fund_details(user_details)) # requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
