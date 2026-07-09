@@ -25,6 +25,7 @@ class Income_Expense_Body(BaseModel):
     note: Optional[str] = None
     expense_date: str
     income_expense: str
+    isEssential: Optional[str] = None
 
     @classmethod
     def as_form(
@@ -36,7 +37,8 @@ class Income_Expense_Body(BaseModel):
         amount: str = Form(...),
         note: str = Form(None),
         expense_date: str = Form(...),
-        typeRadios: str = Form(...)
+        typeRadios: str = Form(...),
+        gridRadios: str = Form(None)
     ):
         return cls(
             category=category,
@@ -46,7 +48,8 @@ class Income_Expense_Body(BaseModel):
             expense_date = expense_date,
             income_expense=typeRadios,
             other_category = other_category,
-            other_subcategory = other_subcategory
+            other_subcategory = other_subcategory,
+            isEssential = gridRadios
         )
 
 
@@ -99,7 +102,8 @@ def _add(body, user_details):
             "sub_category":     body.sub_category,
             "note":             body.note,
             "amount":           Decimal(str(body.amount)),
-            "income_expense":   body.income_expense
+            "income_expense":   body.income_expense,
+            "isEssential":      body.isEssential
         }
 
         _DB.insertDynamodbRow('income_expenses',insertData=[insert_json,])
@@ -182,14 +186,13 @@ def post_index(request: Request, form_data: Income_Expense_Body = Depends(Income
 
     start = pendulum.parse(form_data.expense_date, strict=False)
 
-    print('169 data received from page ', form_data.__dict__)
-
     body = {
         "category": form_data.category if form_data.category != 'None of the mentioned' else form_data.other_category,
         "sub_category": form_data.sub_category if form_data.category != 'None of the mentioned' and form_data.other_subcategory == '' else form_data.other_subcategory,
         "note": form_data.note,
         "amount": form_data.amount,
         "income_expense": form_data.income_expense,
+        "isEssential": form_data.isEssential if form_data.isEssential is not None else '',
         "expense_date": {
             'day': start.day,
             'month': start.month,

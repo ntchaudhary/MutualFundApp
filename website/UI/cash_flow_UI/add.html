@@ -128,6 +128,23 @@
                         </select>
                     </div>
                     <div class="mb-3">
+                        <fieldset>
+                        <label class="mb-2"><strong>Select type of Expense</strong></label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios1" value="Y">
+                            <label class="form-check-label" for="gridRadios1">
+                            Essential
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="gridRadios" id="gridRadios2" value="N">
+                            <label class="form-check-label" for="gridRadios2">
+                            Non Essential
+                            </label>
+                        </div>
+                        </fieldset>
+                    </div>
+                    <div class="mb-3">
                         <label for="expenseDate" class="form-label"><strong>Start Date</strong></label>
                         <input type="date" class="form-control" name="expense_date" id="expense_date"
                             placeholder="transaction date" value="{{date}}">
