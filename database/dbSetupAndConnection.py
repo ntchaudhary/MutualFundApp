@@ -1,11 +1,14 @@
-import json, boto3, sqlite3
+import json, boto3
 from decimal import Decimal
+
+DYNAMODB_CLIENT = boto3.resource('dynamodb') 
 
 
 class Connection:
     def __init__(self):
 
-        self.dynamodb = boto3.resource('dynamodb') 
+        global DYNAMODB_CLIENT
+        self.dynamodb = DYNAMODB_CLIENT
 
     def insertDynamodbRow(self, tableName, insertData: list, convert=False):
         table = self.dynamodb.Table(tableName) # type: ignore
