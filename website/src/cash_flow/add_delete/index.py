@@ -5,7 +5,7 @@ from boto3.dynamodb.conditions import Key
 from pydantic import BaseModel
 from typing import Optional
 from decimal import Decimal
-import pendulum
+import pendulum, asyncio
 
 from database.dbSetupAndConnection import Connection
 from utilities.utils import MyObject
@@ -57,7 +57,7 @@ class Income_Expense_Body(BaseModel):
 SEQ_DIGITS = 6
 MULTIPLIER = 10 ** SEQ_DIGITS  # e.g. 1_000_000
 
-def _add(body, user_details):
+async def _add(body, user_details):
     """ Add the new income or expense entry into database"""
     try:
         table = _DB.dynamodb.Table('income_expenses')
@@ -76,14 +76,16 @@ def _add(body, user_details):
         end_id = start_id + (MULTIPLIER - 1)
 
         # Query the highest transaction_id in this date range
-        response = table.query(
+        
+        response = await asyncio.to_thread( 
+            table.query,
             KeyConditionExpression=(
                 Key('account_id').eq(str(user_details['account_id'])) &
                 Key('transaction_id').between(start_id, end_id)
             ),
             ScanIndexForward=False,  # Descending order to get the latest first
             Limit=1
-        )
+        ) 
 
         # Compute new transaction_id
         if response['Items']:
@@ -119,7 +121,7 @@ def _add(body, user_details):
         }
     return response
 
-def get_unique_categories_and_subcategories(user_details):
+async def get_unique_categories_and_subcategories(user_details):
   """Fetches unique categories and subcategories from a DynamoDB table.
 
   Args:
@@ -132,7 +134,8 @@ def get_unique_categories_and_subcategories(user_details):
   table = _DB.dynamodb.Table('income_expenses')
 
   # Scan the table using ProjectionExpression for efficiency
-  response = table.scan(ProjectionExpression="account_id, profile, income_expense, category, sub_category")
+  response = await asyncio.to_thread(table.scan, ProjectionExpression="account_id, profile, income_expense, category, sub_category")
+  
   items = response.get('Items', [])
 
   categories = {}
@@ -165,7 +168,7 @@ def get_unique_categories_and_subcategories(user_details):
 
 
 @cashFlowAddDelete.get('/add', response_class=HTMLResponse)
-def get_index(request: Request, user_details = Depends(auth_wrapper)):
+async def get_index(request: Request, user_details = Depends(auth_wrapper)):
 
     income_expense_cat, options = get_unique_categories_and_subcategories(user_details)
 
@@ -182,7 +185,7 @@ def get_index(request: Request, user_details = Depends(auth_wrapper)):
     )
 
 @cashFlowAddDelete.post('/add', response_class=HTMLResponse)
-def post_index(request: Request, form_data: Income_Expense_Body = Depends(Income_Expense_Body.as_form), user_details = Depends(auth_wrapper)):
+async def post_index(request: Request, form_data: Income_Expense_Body = Depends(Income_Expense_Body.as_form), user_details = Depends(auth_wrapper)):
 
     start = pendulum.parse(form_data.expense_date, strict=False)
 
@@ -203,9 +206,14 @@ def post_index(request: Request, form_data: Income_Expense_Body = Depends(Income
     if  body['sub_category'] == 'no sub category' or body['sub_category'] is None :
         body['sub_category'] = ''
 
-    response = _add(MyObject(**body), user_details)
-
-    income_expense_cat, options = get_unique_categories_and_subcategories(user_details)
+    awaitData = await asyncio.gather(
+        _add(MyObject(**body), user_details), 
+        get_unique_categories_and_subcategories(user_details)
+    )
+    
+    response = awaitData[0]
+    income_expense_cat = awaitData[1][0]
+    options = awaitData[1][0]
 
 
     # updating the bank balance when a transaction is done
@@ -239,7 +247,7 @@ def post_index(request: Request, form_data: Income_Expense_Body = Depends(Income
         )
 
 @cashFlowAddDelete.delete('/delete/{transaction_id}')
-def _delete(transaction_id: str, user_details = Depends(auth_wrapper)):
+async def _delete(transaction_id: str, user_details = Depends(auth_wrapper)):
     """Delete FD or RD entry from database"""
 
     try:

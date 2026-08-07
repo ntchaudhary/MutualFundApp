@@ -1,24 +1,4 @@
 _inactive_data_mapping = {
-    'Provident Fund': {
-        "type": 'Provident Fund',
-        "add_new_url": "#",
-        "details_url": "#",
-        "button_text": ""
-    },
-    'NPS': {
-        "type": 'National Pension Scheme',
-        "amount": 0,
-        "add_new_url": "#",
-        "details_url": "#",
-        "button_text": "coming soon"
-    },
-    'ETF': {
-        "type": 'ETF',
-        "amount": 0,
-        "add_new_url": "#",
-        "details_url": "#",
-        "button_text": "coming soon"
-    },
     'Stocks': {
         "type": 'Stocks',
         "amount": 0,
@@ -68,6 +48,20 @@ active_data_mapping = {
         "add_new_url": "/website/fund/add",
         "details_url": "/website/fund/list",
         "button_text": "Add New"
+    },
+    'Provident Fund': {
+        "type": 'Provident Fund',
+        "amount": 0,
+        "add_new_url": "#",
+        "details_url": "#",
+        "button_text": "Update"
+    },
+    'ETF': {
+        "type": 'ETF',
+        "amount": 0,
+        "add_new_url": "#",
+        "details_url": "#",
+        "button_text": "Update"
     },
     'Deposits': {
         "type": 'Deposits',
