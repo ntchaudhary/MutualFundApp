@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse, FileResponse
 from boto3.dynamodb.conditions import Key
 from decimal import Decimal
 
-import json
+import asyncio
 
 from database.dbSetupAndConnection import Connection
 from utilities.auth import auth_wrapper
@@ -17,15 +17,18 @@ _DB = Connection()
 
 
 @cashFlowList.get('/list', response_class=HTMLResponse)
-def get_index(request: Request, user_details = Depends(auth_wrapper)):
+async def get_index(request: Request, user_details = Depends(auth_wrapper)):
 
     table = _DB.dynamodb.Table('income_expenses')
 
-    response = table.query(
+    data = await asyncio.to_thread(
+        table.query,
         KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])),
         ScanIndexForward=False,  # Set to True for ascending order, False for descending order
         # Limit = 5
-    )['Items']
+    )
+
+    response = data.get('Items', [])
 
     body = convertDecimalAndGroupByYear([x for x in response if str(x["profile"])==str(user_details["profile"])])
 

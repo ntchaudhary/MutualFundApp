@@ -170,7 +170,7 @@ async def get_unique_categories_and_subcategories(user_details):
 @cashFlowAddDelete.get('/add', response_class=HTMLResponse)
 async def get_index(request: Request, user_details = Depends(auth_wrapper)):
 
-    income_expense_cat, options = get_unique_categories_and_subcategories(user_details)
+    income_expense_cat, options = await get_unique_categories_and_subcategories(user_details)
 
     return templates.TemplateResponse(
         "/cash_flow_UI/add.html", 

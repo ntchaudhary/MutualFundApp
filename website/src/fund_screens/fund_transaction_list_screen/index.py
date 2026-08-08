@@ -2,12 +2,10 @@ from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from boto3.dynamodb.conditions import Key
-import pandas as pd
 
 from database.dbSetupAndConnection import Connection
 from utilities.auth import auth_wrapper
 
-from pprint import pprint
 
 fundTransactionList = APIRouter()
 templates = Jinja2Templates(directory="website/UI")

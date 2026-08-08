@@ -16,7 +16,7 @@ templates = Jinja2Templates(directory="website/UI")
 
 _DB_OBJ = Connection()
 
-async def mutual_fund_fund_details(user_details) -> list:
+def mutual_fund_fund_details(user_details) -> list:
     """Return current value of all the invested funds along with gain and loss on per fund basis"""
     # _DB_OBJ = Connection()
     response = list()
@@ -24,10 +24,7 @@ async def mutual_fund_fund_details(user_details) -> list:
     
     table = _DB_OBJ.dynamodb.Table('fund_owned_details') # type: ignore
 
-    await asyncio.sleep(0.000001)
     account_funds =  table.query(  KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])) )['Items']
-    await asyncio.sleep(0.000001)
-
 
     try:
         for currentMarketPrice in account_funds:
@@ -66,8 +63,7 @@ async def mutual_fund_fund_details(user_details) -> list:
 @fundDetails.get('/list', response_class=HTMLResponse)
 def index(request: Request, user_details = Depends(auth_wrapper)):
 
-    response = asyncio.run(mutual_fund_fund_details(user_details)) # requests.get("http://127.0.0.1:8000/mutual-fund/fund-details")
-
+    response = mutual_fund_fund_details(user_details)
     calculateSum = calculateSumFromListOFDict(response)
 
     return templates.TemplateResponse(

@@ -8,7 +8,7 @@ from utilities.auth import auth_wrapper
 from database.dbSetupAndConnection import Connection
 from utilities.utils import sendMessageToQueue
 
-import json
+import json, asyncio
 
 fundAdd = APIRouter()
 templates = Jinja2Templates(directory="website/UI")
@@ -52,12 +52,12 @@ def get(request: Request, user_details = Depends(auth_wrapper)):
     )
 
 @fundAdd.post('/add', response_class=HTMLResponse)
-def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
+async def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_form), user_details = Depends(auth_wrapper)):
 
     try:
 
         with open('static/mutualFundApp/fundList.json', 'rb') as data:
-            jsonData11 = json.load(data)
+            jsonData11 = await json.load(data)
 
             tmp = [ {'key':x[0], 'value': x[1]} for x in jsonData11.items() ]
 
@@ -84,11 +84,11 @@ def add_fund(request: Request, form_data: DepositBody = Depends(DepositBody.as_f
               ConditionExpression = 'attribute_not_exists(account_id) AND attribute_not_exists(fund_id)'
         )
 
-        print("Successfully inserted ")
         message = 'Successfully Added'
         status = 200
 
-        sendMessageToQueue(
+        await asyncio.to_thread( 
+            sendMessageToQueue,
             {
                 'account_id':user_details['account_id'],
                 'profile':user_details['profile'],

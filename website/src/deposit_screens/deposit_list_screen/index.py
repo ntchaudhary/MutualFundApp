@@ -10,15 +10,13 @@ from database.dbSetupAndConnection import Connection
 from utilities.utils import calculateSumFromListOFDict, convertDecimal
 from utilities.auth import auth_wrapper
 
-import asyncio
-
 depositList = APIRouter()
 templates = Jinja2Templates(directory="website/UI")
 
 _DB_OBJ = Connection()
 
 
-async def deposit_details(user_details) -> dict:
+def deposit_details(user_details) -> dict:
     """Return list of all the investment made in fixed and Recurring desposits and the amount they have made till today"""
     
     table = _DB_OBJ.dynamodb.Table('deposits')
@@ -26,10 +24,8 @@ async def deposit_details(user_details) -> dict:
     status_code = 404
 
     try:
-        await asyncio.sleep(0.000001)
         values = table.query(  KeyConditionExpression = Key('account_id').eq(str(user_details['account_id'])) )
-        await asyncio.sleep(0.000001)
-
+        
         if values['Items']:
             status_code = 200
             response = values["Items"]
@@ -58,7 +54,7 @@ async def deposit_details(user_details) -> dict:
 @depositList.get('/deposit-list', response_class=HTMLResponse)
 def index(request: Request, user_details = Depends(auth_wrapper)):
 
-    response = asyncio.run(deposit_details(user_details))
+    response = deposit_details(user_details)
 
     if str(response.get('status')) == '200':
         calculateSum = calculateSumFromListOFDict(response.get('body'))

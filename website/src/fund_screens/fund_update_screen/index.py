@@ -1,3 +1,4 @@
+import asyncio
 import traceback
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
@@ -5,9 +6,8 @@ from fastapi.responses import HTMLResponse
 from boto3.dynamodb.conditions import Key
 from pydantic import BaseModel
 from typing import Optional
-from decimal import Decimal
 import pandas as pd
-import pendulum,json
+import pendulum
 
 from static.mutualFundApp.constants import MUTUAL_FUND_SQS_URL
 from utilities.utils import MyObject, sendMessageToQueue
@@ -39,7 +39,7 @@ class DepositBody(BaseModel):
             )
 
 
-def _buy(schemeCode, body):
+async def _buy(schemeCode, body):
     """calculating the monthly NAV units purchased and then inserting it into DataBase with date of nav and amount invested
     """
 
@@ -60,14 +60,14 @@ def _buy(schemeCode, body):
     try:
         if 'Item' in jsonData:
             table2 = _DB_OBJ.dynamodb.Table('fund_transaction_details') # type: ignore
-            response = table2.query(
+            response = await asyncio.to_thread( 
+                table2.query,
                 KeyConditionExpression = Key('account_id').eq(str(body.account_id)) & Key('fund_id__id').begins_with(str(schemeCode)),
                 ScanIndexForward=False,  # Set to True for ascending order, False for descending order
                 Limit = 1
                 )
             if response["Items"]:
                 id = int(response["Items"][0]["fund_id__id"].split('__')[2])+1
-                print('line 72 last id in system', id)
             else:
                 id = 1
         else:
@@ -79,7 +79,7 @@ def _buy(schemeCode, body):
         if body.units == 0:
             from mftool import Mftool
             _MF = Mftool()
-            original_data = _MF.get_scheme_historical_nav( schemeCode.split('__')[1], as_Dataframe=True )
+            original_data = await _MF.get_scheme_historical_nav( schemeCode.split('__')[1], as_Dataframe=True )
 
             original_data.index = pd.to_datetime(original_data.index, dayfirst=True) # type: ignore
             original_data['nav'] = pd.to_numeric(original_data['nav'], downcast='float') # type: ignore
@@ -108,7 +108,8 @@ def _buy(schemeCode, body):
             "message": "UNITS UPDATED SUCCESSFULLY"
         }
 
-        sendMessageToQueue(
+        await asyncio.to_thread( 
+            sendMessageToQueue,
             {
                 'account_id': str(body.account_id),
                 'profile': body.profile,
@@ -158,8 +159,7 @@ async def buy_post(request: Request, form_data: DepositBody = Depends(DepositBod
 
     body = MyObject(**body_dict)
 
-    response = _buy(request.path_params.get('schemeCode'), body) # requests.post(f"http://127.0.0.1:8000/mutual-fund/fund-transactions/{request.path_params.get('schemeCode')}/buy", json=body)
-    
+    response = await _buy(request.path_params.get('schemeCode'), body)     
 
     return templates.TemplateResponse(
             "/fund_UI/fund_update.html", 
@@ -177,7 +177,10 @@ async def _delete(schemeCode: str, user_details = Depends(auth_wrapper)):
     _DB = Connection()
 
     try:
-        _DB.deleteDynamodbRow( 'fund_transaction_details', {'account_id': str(user_details['account_id']), 'fund_id__id': schemeCode} )
+        await asyncio.to_thread( 
+            _DB.deleteDynamodbRow,
+            'fund_transaction_details', {'account_id': str(user_details['account_id']), 'fund_id__id': schemeCode} 
+        )
 
         response = {
             "status" : 200,
@@ -187,7 +190,8 @@ async def _delete(schemeCode: str, user_details = Depends(auth_wrapper)):
         fund_id = schemeCode.split('__')
 
 
-        sendMessageToQueue(
+        await asyncio.to_thread( 
+            sendMessageToQueue,
             {
                 'account_id': str(user_details['account_id']),
                 'profile': str(user_details['profile']),
@@ -201,7 +205,5 @@ async def _delete(schemeCode: str, user_details = Depends(auth_wrapper)):
             "status": 500,
             "message": str(e)
         }
-
-    print(response)
 
     return(response)

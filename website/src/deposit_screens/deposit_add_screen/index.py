@@ -9,7 +9,7 @@ from utilities.utils import MyObject, sendMessageToQueue
 from utilities.auth import auth_wrapper
 from static.depositeApp.constants import DEPOSIT_SQS_URL
 
-import pendulum, decimal, traceback
+import pendulum, decimal, traceback, asyncio
 
 
 depositAdd = APIRouter()
@@ -56,7 +56,7 @@ class DepositBody(BaseModel):
             maturity_date=maturity_date
         )
 
-def _add(body, user_details):
+async def _add(body, user_details):
     """ Add the new FD or RD entry into database"""
 
     table = _DB.dynamodb.Table('deposits')
@@ -109,13 +109,9 @@ def _add(body, user_details):
                 "isMatured":        False,                                                                                                          # boolean
                 "maturity_amount":  decimal.Decimal(str(round(amount,0) ))                                                                          # number
             }
-        
-        print('line 114', insert_json)
 
-        _DB.insertDynamodbRow('deposits',insertData=[insert_json,])
-
-
-        sendMessageToQueue(user_details, DEPOSIT_SQS_URL)
+        await asyncio.to_thread( _DB.insertDynamodbRow, 'deposits',insertData=[insert_json,] )
+        await asyncio.to_thread( sendMessageToQueue, user_details, DEPOSIT_SQS_URL )
         
         response = {
             "status" : 200,
@@ -131,8 +127,7 @@ def _add(body, user_details):
 
     return response
 
-
-def get_unique_banks():
+async def get_unique_banks():
   """Fetches unique bank names from a DynamoDB table.
 
   Args:
@@ -145,7 +140,7 @@ def get_unique_banks():
   table = _DB.dynamodb.Table('deposits')
 
   # Scan the table using ProjectionExpression for efficiency
-  response = table.scan(ProjectionExpression="bank")
+  response = await asyncio.to_thread( table.scan, ProjectionExpression="bank")
   items = response.get('Items', [])
 
   bank = list()
@@ -158,9 +153,9 @@ def get_unique_banks():
 
 
 @depositAdd.get('/add-deposit', response_class=HTMLResponse)
-def get_index(request: Request, user_details = Depends(auth_wrapper)):
+async def get_index(request: Request, user_details = Depends(auth_wrapper)):
 
-    banks = get_unique_banks()
+    banks = await get_unique_banks()
 
     return templates.TemplateResponse(
         "/deposit_UI/deposit_add.html", 
@@ -198,9 +193,13 @@ async def post_index(request: Request, form_data: DepositBody = Depends(DepositB
         }
     }
 
-    response = _add(MyObject(**body), user_details)
+    awaitdata = await asyncio.gather(
+        _add(MyObject(**body), user_details),
+        get_unique_banks()
+    )
 
-    banks = get_unique_banks()
+    response = awaitdata[0]
+    banks = awaitdata[1]
 
     return templates.TemplateResponse(
             "/deposit_UI/deposit_add.html", 
@@ -213,18 +212,14 @@ async def post_index(request: Request, form_data: DepositBody = Depends(DepositB
             }
         )
 
-
 @depositAdd.delete('/delete/{fdID}')
-def _delete(fdID: str, user_details = Depends(auth_wrapper)):
+async def _delete(fdID: str, user_details = Depends(auth_wrapper)):
     """Delete FD or RD entry from database""" 
-    
-    print("line 221",user_details)
 
     try:
-        _DB.deleteDynamodbRow( 'deposits', {'account_id': (user_details['account_id']),'id': decimal.Decimal(fdID)} )
 
-        print(user_details)
-        sendMessageToQueue(user_details,DEPOSIT_SQS_URL)
+        await asyncio.to_thread( _DB.deleteDynamodbRow,  'deposits', {'account_id': (user_details['account_id']),'id': decimal.Decimal(fdID)} )
+        await asyncio.to_thread( sendMessageToQueue, user_details,DEPOSIT_SQS_URL)
 
         response = {
             "status" : 200,
