@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Request, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
@@ -147,9 +149,7 @@ def get_index(request: Request, user_details = Depends(auth_wrapper)):
     )
 
 @addNPS.post('/add', response_class=HTMLResponse)
-def post_index(request: Request, form_data: add_nps_body = Depends(add_nps_body.as_form), user_details = Depends(auth_wrapper)):
-
-    print('169 data received from page ', form_data.__dict__)
+async def post_index(request: Request, form_data: add_nps_body = Depends(add_nps_body.as_form), user_details = Depends(auth_wrapper)):
 
     try:
 
@@ -180,7 +180,8 @@ def post_index(request: Request, form_data: add_nps_body = Depends(add_nps_body.
             "message": "Successfully Inserted"
         }
 
-        sendMessageToQueue(
+        await asyncio.to_thread(
+            sendMessageToQueue,
             {
                 'account_id':user_details['account_id'],
                 'profile':user_details['profile'],

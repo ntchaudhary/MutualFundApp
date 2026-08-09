@@ -22,8 +22,8 @@ from .src.deposit_screens.deposit_add_screen.index import depositAdd
 from .src.cash_flow.add_delete.index import cashFlowAddDelete
 from .src.cash_flow.list.index import cashFlowList
 
-# from .src.nps.nps_add.index import addNPS
-# from .src.nps.nps_list.index import listNPS
+from .src.nps.nps_add.index import addNPS
+from .src.nps.nps_list.index import listNPS
 
 website = APIRouter()
 
@@ -37,18 +37,24 @@ website.include_router(authCallBack)
 # website.include_router(signOUT)
 # website.include_router(changePassword)
 
+# home screen
 website.include_router(home, prefix=_BASE_ENDPOINT)
 
+# mutual fund
 website.include_router(fundDetails, prefix=f"{_BASE_ENDPOINT}/fund")
 website.include_router(fundTransactionList, prefix=f"{_BASE_ENDPOINT}/fund")
 website.include_router(fundUpdate, prefix=f"{_BASE_ENDPOINT}/fund")
 website.include_router(fundAdd, prefix=f"{_BASE_ENDPOINT}/fund")
 
+# cash flow
+website.include_router(cashFlowAddDelete, prefix=f"{_BASE_ENDPOINT}/cashFlow")
+website.include_router(cashFlowList, prefix=f"{_BASE_ENDPOINT}/cashFlow")
+
+# NPS
+website.include_router(addNPS, prefix=f"{_BASE_ENDPOINT}/nps")
+website.include_router(listNPS, prefix=f"{_BASE_ENDPOINT}/nps")
+
+
+# to be fixed in future
 website.include_router(depositList, prefix=_BASE_ENDPOINT)
 website.include_router(depositAdd, prefix=_BASE_ENDPOINT)
-
-website.include_router(cashFlowAddDelete, prefix="/website/cashFlow")
-website.include_router(cashFlowList, prefix="/website/cashFlow")
-
-# website.include_router(addNPS, prefix="/website/nps")
-# website.include_router(listNPS, prefix="/website/nps")

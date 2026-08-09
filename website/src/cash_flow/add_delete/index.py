@@ -170,7 +170,10 @@ async def get_unique_categories_and_subcategories(user_details):
 @cashFlowAddDelete.get('/add', response_class=HTMLResponse)
 async def get_index(request: Request, user_details = Depends(auth_wrapper)):
 
-    income_expense_cat, options = await get_unique_categories_and_subcategories(user_details)
+    async with asyncio.TaskGroup() as tg:
+        task = tg.create_task( get_unique_categories_and_subcategories(user_details) )
+
+    income_expense_cat, options = task.result()
 
     return templates.TemplateResponse(
         "/cash_flow_UI/add.html", 
@@ -206,14 +209,12 @@ async def post_index(request: Request, form_data: Income_Expense_Body = Depends(
     if  body['sub_category'] == 'no sub category' or body['sub_category'] is None :
         body['sub_category'] = ''
 
-    awaitData = await asyncio.gather(
-        _add(MyObject(**body), user_details), 
-        get_unique_categories_and_subcategories(user_details)
-    )
-    
-    response = awaitData[0]
-    income_expense_cat = awaitData[1][0]
-    options = awaitData[1][0]
+    async with asyncio.TaskGroup() as tg:
+        task1 = tg.create_task( get_unique_categories_and_subcategories(user_details) )
+        task2 = tg.create_task( _add(MyObject(**body), user_details) )
+
+    income_expense_cat, options = task1.result()
+    response = task2.result()
 
 
     # updating the bank balance when a transaction is done

@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en" class="h-100">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Investment Tracker</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    /* Prevent horizontal overflow */
+    html, body {
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    .dropdown-menu[data-bs-popper] {
+            top: 100%;
+            left: auto;
+            margin-top: .125rem;
+    }
+
+    /* Remove gutter margins from Bootstrap rows */
+    .row {
+      margin-right: 0;
+      margin-left: 0;
+    }
+    /* Edge-to-edge accordion */
+    .accordion {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    .accordion-item {
+      border: none;
+      border-bottom: 1px solid #dee2e6;
+    }
+    /* ADDED: Ensures the last accordion item doesn't have a bottom border if it's not desired. */
+    .accordion-item:last-child {
+      border-bottom: none;
+    }
+    .accordion-button {
+      padding: 1rem;
+    }
+    /* Custom styles for the table within the accordion body */
+    .accordion-body .table th,
+    .accordion-body .table td {
+      vertical-align: middle;
+      padding: 0.75rem;
+      text-align: center;
+      border-left: none;
+      border-right: none;
+    }
+
+    .accordion-body .table th {
+      font-weight: bold;
+    }
+
+    .accordion-body .table thead th {
+        border-bottom: 1px solid #dee2e6;
+    }
+    .accordion-body .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Prevent wide table overflow */
+    .accordion-body {
+      overflow-x: auto;
+    }
+
+    /* Style for the action column */
+    .accordion-body .table .col-action {
+      width: 1%; /* Make the column take only the space it needs */
+      white-space: nowrap; /* Prevent content from wrapping */
+      text-align: center; /* Center the button within its minimal space */
+    }
+
+    /* Responsive font sizes for table content */
+    @media (max-width: 768px) {
+      .accordion-body .table { font-size: 14px; }
+    }
+    @media (max-width: 576px) {
+      .accordion-body .table { font-size: 12px; }
+    }
+  </style>
+
+  <script>
+    // Function to format numbers as currency (Indian Rupees)
+    function formatCurrency(num, id) {
+      const nf = new Intl.NumberFormat('en-IN');
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = "₹" + nf.format(parseFloat(num));
+    }
+
+    // Function to build the main page content, including summary and accordion schemes
+    function buildPage(data, agg) {
+
+      // Update the count of investments
+      document.getElementById('count').textContent = agg.count;
+
+      ['invested','current','totalReturn'].forEach(k =>
+        formatCurrency(agg[k], k)
+      );
+
+      // Apply color coding to Total Return and Total Current based on return value
+      const totalReturnEl = document.getElementById('totalReturn');
+      const totalcurrentEl = document.getElementById('current');
+      if (agg.totalReturn < 0) {
+        totalReturnEl.classList.add('text-danger');
+        totalcurrentEl.classList.add('text-danger');
+      } else if (agg.totalReturn > 0) {
+        totalReturnEl.classList.add('text-success');
+        totalcurrentEl.classList.add('text-success');
+      }
+
+      // Get the accordion container for schemes
+      const acc = document.getElementById('schemesAccordion');
+      acc.innerHTML = ''; // Clear existing content
+
+      // Iterate over each scheme to create an accordion item
+      data.forEach(item => {
+        const code = item.scheme_code;
+        const clean = code.replace(/\s+/g, '_'); // Create a clean ID from scheme code
+
+        const itm = document.createElement('div');
+        itm.className = 'accordion-item'; // Standard Bootstrap accordion item class
+
+        // Determine row class based on gainLoss for the table row
+        let rowClass = '';
+        if (item.gainLoss < 0) {
+            rowClass = 'table-warning';
+        }else {
+            rowClass = 'table-primary';
+        }
+
+        // Set the inner HTML for the accordion item, including header and body
+        itm.innerHTML = `
+          <h2 class="accordion-header" id="heading-${clean}">
+            <button class="accordion-button collapsed" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#collapse-${clean}"
+                    aria-expanded="false" aria-controls="collapse-${clean}">
+              <div class="row w-100 text-center">
+                <div class="col">
+                  <div class="h6"><strong>${item.scheme_name}</strong></div>
+                </div>
+                <div class="col">
+                  <div class="h5" id="${clean}-inv"></div>
+                </div>
+                <div class="col">
+                  <div class="h5" id="${clean}-cur"></div>
+                </div>
+              </div>
+            </button>
+          </h2>
+          <div id="collapse-${clean}" class="accordion-collapse collapse"
+               aria-labelledby="heading-${clean}" data-bs-parent="#schemesAccordion">
+            <div class="accordion-body">
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th class="text-center">Units</th>
+                      <th class="text-center">NAV</th>
+                      <th class="text-center">Return</th>
+                      <th class="text-center">Allocation</th>
+                      <th class="col-action"></th>
+                    </tr>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr class="${rowClass}">
+                      <td class="text-center" id="${clean}-units">${item.total_units}</td>
+                      <td class="text-center" id="${clean}-nav"></td>
+                      <td class="text-center" id="${clean}-return"></td>
+                      <td class="text-center">${item.allocation}%</td>
+                      <td class="col-action">
+                        <a href="/website/nps/transactions/${code}" class="btn btn-sm btn-outline-primary" aria-label="View transactions for ${item.scheme_name}">View Transactions</a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+
+        acc.appendChild(itm); // Add the created accordion item to the container
+
+        // Format and display individual scheme financial values
+        formatCurrency(item.invested, `${clean}-inv`);
+        formatCurrency(item.balance_units_value, `${clean}-cur`);
+        formatCurrency(item.gainLoss, `${clean}-return`);
+        formatCurrency(item.nav, `${clean}-nav`);
+
+        // Ensure text remains dark on all backgrounds for readability
+        // Adjusted selector to target text elements within the table directly.
+        itm.querySelectorAll('.accordion-body td, .accordion-body th').forEach(el => el.classList.add('text-dark'));
+
+
+        // Apply color coding to current value and return based on 'gainLoss'
+        const curEl = document.getElementById(`${clean}-cur`);
+        const retEl = document.getElementById(`${clean}-ret`);
+        if (item.gainLoss < 0) {
+          curEl.classList.add('text-danger');
+        } else if (item.gainLoss > 0) {
+          curEl.classList.add('text-success');
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const aggregates = {
+        count: {{ count }},
+        invested: {{ invested }},
+        current: {{ current }},
+        totalReturn: {{ totalReturn }}
+      };
+      const schemes = {{ body | tojson }};
+      buildPage(schemes, aggregates);
+    });
+  </script>
+</head>
+
+<body class="d-flex text-center text-black">
+  <div class="cover-container d-flex w-100 h-100 mx-auto flex-column pt-5">
+    <div class="row row-cols-1">
+      {% include "/include/navbar.html" %}
+      <div class="col bg-black text-white">
+        <div class="py-5">
+          <h1><strong>Number of investments</strong> – <span id="count"></span></h1>
+          <div class="row mt-4">
+            <div class="col py-2"><h5><strong>Total Invested</strong></h5><h2 id="invested"></h2></div>
+            <div class="col py-2"><h5><strong>Total Current</strong></h5><h2 id="current"></h2></div>
+            <div class="col py-2"><h5><strong>Total Return</strong></h5><h2 id="totalReturn"></h2></div>
+          </div>
+        </div>
+      </div>
+      <div class="col px-0">
+        <div class="py-5">
+          <div class="row text-center mb-3">
+            <div class="col h3"><strong>Schemes</strong></div>
+            <div class="col h3"><strong>Invested</strong></div>
+            <div class="col h3"><strong>Current</strong></div>
+          </div>
+          <div class="accordion" id="schemesAccordion"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
