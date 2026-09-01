@@ -1,14 +1,10 @@
 from datetime import datetime
-from mftool import Mftool
-from boto3.dynamodb.conditions import Key
 import json, boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 import requests
 
 DEPOSIT_SQS_URL = 'https://sqs.ap-south-1.amazonaws.com/701647385258/deposit_amount_update_queue'
 MUTUAL_FUND_SQS_URL = 'https://sqs.ap-south-1.amazonaws.com/701647385258/mutualFund_amount_update_queue'
-
-_MF = Mftool()
 
 def lambda_handler(event, context):
     """this lambda function executes daily (tuesday to saturday) at 5 am to update the nav of the fund available in system"""
@@ -30,17 +26,21 @@ def lambda_handler(event, context):
     for data in items:
 
         if 'mf' in data['fund_id']:
-            x = _MF.get_scheme_quote(data['fund_id'].split('__')[1])
-            x['fund_id'] = data['fund_id']
-            x['exitTime'] = int(data.get('exitTime', 9))
-            del x['scheme_code']
+            tmp = requests.get(f"https://api.mfapi.in/mf/{data['fund_id'].split('__')[1]}/latest").json()
+            x = {
+            "fund_id": str(tmp['meta']['scheme_code']),
+            "exitTime": int(data['exitTime']),
+            "last_updated": tmp['data'][0]['date'],
+            "nav": tmp['data'][0]['nav'],
+            "scheme_name": tmp['meta']['scheme_name']
+            }
 
         if 'nps' in data['fund_id']:
             nps = {}
-            nps = json.loads(requests.get(f"https://npsnav.in/api/detailed/{data['fund_id'].split('__')[1]}")) # type: ignore
+            nps = requests.get(f"https://npsnav.in/api/detailed/{data['fund_id'].split('__')[1]}").json() # type: ignore
             x = {
             "fund_id": data['fund_id'],
-            "exitTime": 99,
+            "exitTime": int(data['exitTime']),
             "last_updated": nps['Last Updated'],
             "nav": str(nps['NAV']),
             "scheme_name": nps['Scheme Name']

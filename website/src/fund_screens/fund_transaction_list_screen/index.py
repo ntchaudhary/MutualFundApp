@@ -11,7 +11,7 @@ fundTransactionList = APIRouter()
 templates = Jinja2Templates(directory="website/UI")
 
 
-def _fund_transactions_list(schemeCode, user_details) -> dict:
+def _fund_transactions_list(schemeCode:str, user_details:dict) -> dict:
 
     _DB_OBJ = Connection()
     table1 = _DB_OBJ.dynamodb.Table('fund_details')
@@ -39,9 +39,9 @@ def _fund_transactions_list(schemeCode, user_details) -> dict:
     return (response)
 
 @fundTransactionList.get('/{schemeCode}/transactions', response_class=HTMLResponse)
-def index(request: Request, user_details = Depends(auth_wrapper)):
+def index(request: Request, schemeCode:str,  user_details = Depends(auth_wrapper)):
 
-    response = _fund_transactions_list(request.path_params.get('schemeCode'), user_details) # requests.get(api_url)
+    response = _fund_transactions_list(schemeCode, user_details) # requests.get(api_url)
 
     return templates.TemplateResponse(
         "/fund_UI/mf_transaction_details.html", 
