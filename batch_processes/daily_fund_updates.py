@@ -28,7 +28,7 @@ def lambda_handler(event, context):
         if 'mf' in data['fund_id']:
             tmp = requests.get(f"https://api.mfapi.in/mf/{data['fund_id'].split('__')[1]}/latest").json()
             x = {
-            "fund_id": str(tmp['meta']['scheme_code']),
+            "fund_id": data['fund_id'],
             "exitTime": int(data['exitTime']),
             "last_updated": tmp['data'][0]['date'],
             "nav": tmp['data'][0]['nav'],
