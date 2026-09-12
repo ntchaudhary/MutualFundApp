@@ -1,7 +1,5 @@
-from decimal import Decimal
-from logging import raiseExceptions
 from botocore.exceptions import ClientError
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Key
 from datetime import datetime, timedelta
 import json, boto3
 import requests
@@ -13,21 +11,29 @@ table2 = dynamodb.Table('fund_details') # type: ignore
 table3 = dynamodb.Table('fund_owned_details') # type: ignore
 table4 = dynamodb.Table('fund_transaction_details') # type: ignore
 
+def deleteDynamodbRow(self, tableName, key):
+    tableName.delete_item( Key = key )
+
 def update_fund_details(fund_detail):
     x=dict()
 
     try:
         if 'mf' in fund_detail['fund_id']:
-            from mftool import Mftool
-            _MF = Mftool()
-            x = _MF.get_scheme_quote(fund_detail['fund_id'].split('__')[1])
-            del x['scheme_code']
+            
+            tmp = requests.get(f"https://api.mfapi.in/mf/{fund_detail['fund_id'].split('__')[1]}/latest").json()
+
+            x = {
+            "fund_id": fund_detail['fund_id'],
+            "exitTime": 99,
+            "last_updated": tmp['data'][0]['date'],
+            "nav": tmp['data'][0]['nav'],
+            "scheme_name": tmp['meta']['scheme_name']
+            }
 
         if 'nps' in fund_detail['fund_id']:
             nps = {}
 
             api_url = f"https://npsnav.in/api/detailed/{fund_detail['fund_id'].split('__')[1]}"
-            print(api_url)
 
             nav = requests.get(api_url)
             
@@ -209,6 +215,9 @@ def update_nav(fund_detail, fund_data):
         )['Items']
     
     for row in per_account_funds:
+
+        if row.get('invested', '1') == '0':
+            deleteDynamodbRow(table3, {'account_id': str(fund_detail['account_id']), 'fund_id': str(row['fund_id'])} )
         
         response_fund_owned = table3.update_item(
                 Key = {
